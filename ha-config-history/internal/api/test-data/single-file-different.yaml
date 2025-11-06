@@ -1,0 +1,5 @@
+# Completely different content
+this: should
+be: completely
+replaced: true
+extra_field: "this should not exist after restore"

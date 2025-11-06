@@ -1,0 +1,26 @@
+- id: "example-1"
+  alias: "Sample Multi Example 1"
+  description: "An example demonstrating multiple configurations."
+  config:
+    settingA: true
+    settingB: "valueA"
+    nestedConfig:
+      option1: 10
+      option2: [1, 2, 3]
+  tags:
+    - "example"
+    - "multi-config"
+    - "yaml"
+- id: "example-2"
+  alias: "Sample Multi Example 2"
+  description: "An example demonstrating multiple configurations."
+  config:
+    settingA: true
+    settingB: "valueB"
+    nestedConfig:
+      option1: 10
+      option2: [1, 2, 3]
+  tags:
+    - "example"
+    - "multi-config"
+    - "yaml"

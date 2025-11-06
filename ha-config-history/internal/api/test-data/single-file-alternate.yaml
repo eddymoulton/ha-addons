@@ -1,0 +1,9 @@
+# Alternate configuration for concurrent testing
+setting1: alternate_value1
+setting2: alternate_value2
+nested:
+  option1: 999
+  option2: 888
+list:
+  - alternate_item1
+  - alternate_item2

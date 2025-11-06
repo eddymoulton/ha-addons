@@ -1,0 +1,6 @@
+# Configuration with UTF-8 characters
+description: "Test with émojis 🎉 and spëcial çharacters"
+chinese: "中文测试"
+emoji: "🔥💯✨"
+unicode: "Ñoño, café, naïve"
+symbols: "€£¥₹"

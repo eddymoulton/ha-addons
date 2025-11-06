@@ -1,0 +1,8 @@
+id: automation_2
+alias: Modified Second Automation
+trigger:
+  platform: time
+  at: "08:30:00"
+action:
+  service: light.turn_off
+  entity_id: light.bedroom

@@ -1,0 +1,21 @@
+- id: automation_1
+  alias: First Automation
+  trigger:
+    platform: state
+    entity_id: light.living_room
+  action:
+    service: notify.send
+- id: automation_2
+  alias: Second Automation
+  trigger:
+    platform: time
+    at: "07:00:00"
+  action:
+    service: light.turn_on
+- id: automation_3
+  alias: Third Automation
+  trigger:
+    platform: sun
+    event: sunset
+  action:
+    service: light.turn_off

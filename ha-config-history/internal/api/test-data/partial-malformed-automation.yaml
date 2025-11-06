@@ -1,0 +1,7 @@
+id: automation_2
+alias: This is malformed
+trigger:
+  platform: state
+  - this is wrong indentation
+action:
+  service: [unclosed

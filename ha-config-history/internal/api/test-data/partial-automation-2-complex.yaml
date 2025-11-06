@@ -1,0 +1,21 @@
+id: automation_2
+alias: Complex YAML Structure Test
+description: "Test with special characters: émojis 🎉 and quotes"
+trigger:
+  - platform: state
+    entity_id: sensor.temperature
+    above: 25
+  - platform: time
+    at: "12:00:00"
+condition:
+  - condition: numeric_state
+    entity_id: sensor.humidity
+    below: 60
+action:
+  - service: climate.set_temperature
+    data:
+      temperature: 22
+      entity_id: climate.living_room
+  - service: notify.send
+    data:
+      message: "Temperature adjusted"

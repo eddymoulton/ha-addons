@@ -1,0 +1,35 @@
+name: HA Config History
+version: 0.1.0
+slug: ha-config-history
+description: Git like change history without git
+url: https://github.com/eddymoulton/ha-config-history
+changelog: https://github.com/eddymoulton/ha-config-history/blob/main/CHANGELOG.md
+arch:
+  - amd64
+  - aarch64
+webui: http://[HOST]:[PORT:40613]
+ports:
+  54000/tcp: null
+ingress: true
+ingress_port: 40613
+panel_icon: mdi:backup-restore
+panel_title: Config History
+map:
+  - type: homeassistant_config
+    read_only: false
+  - type: addon_config
+    read_only: false
+  - type: ssl
+    read_only: false
+  - type: addons
+    read_only: false
+  - type: backup
+    read_only: false
+  - type: share
+    read_only: false
+  - type: media
+    read_only: false
+  - type: all_addon_configs
+    read_only: false
+  - type: data
+    read_only: false

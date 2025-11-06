@@ -1,0 +1,72 @@
+name: "Tests"
+run-name: "Tests"
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./ha-config-history
+
+    permissions: # https://github.com/dorny/test-reporter/issues/168
+      statuses: write
+      checks: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for significant changes
+        id: changed-files-specific
+        uses: tj-actions/changed-files@v45
+        with:
+          files_ignore: |
+            .release-please-manifest.json
+            release-please-config.json
+            .github/**
+            **.md
+
+      - name: Set up Go
+        if: github.event_name == 'release' || steps.changed-files-specific.outputs.any_changed == 'true'
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.24
+
+      - name: Build binary
+        if: github.event_name == 'release' || steps.changed-files-specific.outputs.any_changed == 'true'
+        run: go build -o bin/ha-config-history main.go
+
+      - name: Setup gotestsum
+        if: github.event_name == 'release' || steps.changed-files-specific.outputs.any_changed == 'true'
+        run: go install gotest.tools/gotestsum@latest
+
+      - name: Unit Tests
+        if: github.event_name == 'release' || steps.changed-files-specific.outputs.any_changed == 'true'
+        run: gotestsum --format testname --junitfile results/unit-tests.xml
+
+      - name: LS
+        if: github.event_name == 'release' || steps.changed-files-specific.outputs.any_changed == 'true'
+        run: |
+          echo "root"
+          ls -la
+
+          echo "results"
+          ls -la results/
+
+          echo ".."
+          ls -la ../
+
+      - name: Test Report
+        uses: dorny/test-reporter@v1
+        if: (success() || failure()) && (github.event_name == 'release' || steps.changed-files-specific.outputs.any_changed == 'true')
+        with:
+          name: Test Results
+          path: "**/results/*-tests.xml"
+          reporter: java-junit

@@ -1,0 +1,11 @@
+description: "An example of a single configuration file in a folder, with an id"
+config:
+  settingA: true
+  settingB: "valueB"
+  nestedConfig:
+    option1: 10
+    option2: [1, 2, 3]
+tags:
+  - "example"
+  - "multi-config"
+  - "yaml"

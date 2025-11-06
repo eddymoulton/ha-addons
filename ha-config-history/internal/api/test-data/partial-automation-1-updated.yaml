@@ -1,0 +1,7 @@
+id: automation_1
+alias: Updated First Automation
+trigger:
+  platform: state
+  entity_id: binary_sensor.door
+action:
+  service: alarm_control_panel.alarm_trigger

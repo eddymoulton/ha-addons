@@ -1,0 +1,7 @@
+id: automation_2
+alias: Modified Second Automation
+trigger:
+  platform: webhook
+  webhook_id: test_webhook
+action:
+  service: light.toggle

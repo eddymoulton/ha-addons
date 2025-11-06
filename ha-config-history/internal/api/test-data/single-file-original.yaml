@@ -1,0 +1,10 @@
+# Test configuration file
+setting1: value1
+setting2: value2
+nested:
+  option1: 10
+  option2: 20
+list:
+  - item1
+  - item2
+  - item3

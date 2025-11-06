@@ -1,0 +1,9 @@
+# Restored configuration
+setting1: restored_value1
+setting2: restored_value2
+nested:
+  option1: 100
+  option2: 200
+list:
+  - restored_item1
+  - restored_item2

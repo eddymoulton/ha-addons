@@ -1,0 +1,5 @@
+# Malformed YAML - invalid indentation and structure
+setting1: value1
+  invalid_indent: this should fail
+nested:
+  option1: [unclosed bracket

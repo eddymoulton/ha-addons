@@ -1,0 +1,8 @@
+id: automation_3
+alias: Updated Third Automation
+trigger:
+  platform: sun
+  event: sunrise
+action:
+  service: scene.turn_on
+  entity_id: scene.morning

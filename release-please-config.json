@@ -1,0 +1,23 @@
+{
+  "packages": {
+    "ha-config-history": {
+      "component": "ha-config-history",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "release-type": "go",
+      "versioning": "default",
+      "extra-files": [
+        {
+          "type": "yaml",
+          "path": "config.yaml",
+          "jsonpath": "$.version"
+        },
+        {
+          "type": "json",
+          "path": "frontend/package.json",
+          "jsonpath": "$.version"
+        }
+      ]
+    }
+  }
+}
