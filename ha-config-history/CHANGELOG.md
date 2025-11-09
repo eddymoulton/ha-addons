@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/eddymoulton/ha-config-history/compare/ha-config-history-v1.1.0...ha-config-history-v1.1.1) (2025-11-09)
+
+
+### Bug Fixes
+
+* lower some noisy logs ([84b01b4](https://github.com/eddymoulton/ha-config-history/commit/84b01b4c9390d190d53e91d94ebc75bdeba1eb26))
+
 ## [1.1.0](https://github.com/eddymoulton/ha-config-history/compare/ha-config-history-v1.0.0...ha-config-history-v1.1.0) (2025-11-09)
 
 
