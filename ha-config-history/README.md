@@ -13,7 +13,7 @@ Create a timeline of changes to yaml configuration in Home Assistant with a diff
 
 ## Screenshots
 
-![Homescreen](assets/home.png)
+![Homescreen](https://github.com/eddymoulton/ha-config-history/raw/main/ha-config-history/assets/home.png)
 
 ## Installation
 
@@ -57,7 +57,7 @@ All configuration is done via the web app
 
 ### General Settings
 
-<img width="721" height="521" alt="image" src="assets/general-settings.png" />
+<img width="721" height="521" alt="image" src="https://github.com/eddymoulton/ha-config-history/raw/main/ha-config-history/assets/general-settings.png" />
 
 | Setting                             | Description                                                                                                                                                                                              |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -70,7 +70,7 @@ All configuration is done via the web app
 
 ### Config Backup Options
 
-<img width="727" height="692" alt="image" src="assets/config-backup-options.png" />
+<img width="727" height="692" alt="image" src="https://github.com/eddymoulton/ha-config-history/raw/main/ha-config-history/assets/config-backup-options.png" />
 
 | Setting         | Description                                                                          |
 | --------------- | ------------------------------------------------------------------------------------ |
