@@ -3,11 +3,9 @@ version: 1.1.1
 slug: ha-config-history
 description: Git like change history without git
 url: https://github.com/eddymoulton/ha-config-history
-image: ghcr.io/eddymoulton/ha-config-history
 changelog: https://github.com/eddymoulton/ha-config-history/blob/main/CHANGELOG.md
 arch:
   - amd64
-  - aarch64
 webui: http://[HOST]:[PORT:40613]
 ports:
   54000/tcp: null
