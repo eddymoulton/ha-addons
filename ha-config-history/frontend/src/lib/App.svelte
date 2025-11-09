@@ -14,8 +14,8 @@
 
   // Column widths (in pixels)
   const MIN_COLUMN_WIDTH = 250;
-  const DEFAULT_CONFIG_WIDTH = 350;
-  const DEFAULT_BACKUP_WIDTH = 400;
+  const DEFAULT_CONFIG_WIDTH = 600;
+  const DEFAULT_BACKUP_WIDTH = 350;
 
   let configColumnWidth = DEFAULT_CONFIG_WIDTH;
   let backupColumnWidth = DEFAULT_BACKUP_WIDTH;
