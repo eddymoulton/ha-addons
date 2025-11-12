@@ -34,6 +34,8 @@ export interface ConfigBackupOptions {
   maxBackupAgeDays?: number;
   idNode?: string;
   friendlyNameNode?: string;
+  includeFilePatterns?: string[];
+  excludeFilePatterns?: string[];
 }
 
 export interface AppSettings {

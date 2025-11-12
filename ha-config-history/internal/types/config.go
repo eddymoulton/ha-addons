@@ -17,13 +17,15 @@ type AppSettings struct {
 }
 
 type ConfigBackupOptions struct {
-	Name             string  `json:"name"`
-	Path             string  `json:"path"`
-	BackupType       string  `json:"backupType"` // "multiple", "single", "directory"
-	MaxBackups       *int    `json:"maxBackups,omitempty"`
-	MaxBackupAgeDays *int    `json:"maxBackupAgeDays,omitempty"`
-	IdNode           *string `json:"idNode,omitempty"`
-	FriendlyNameNode *string `json:"friendlyNameNode,omitempty"`
+	Name                string   `json:"name"`
+	Path                string   `json:"path"`
+	BackupType          string   `json:"backupType"` // "multiple", "single", "directory"
+	MaxBackups          *int     `json:"maxBackups,omitempty"`
+	MaxBackupAgeDays    *int     `json:"maxBackupAgeDays,omitempty"`
+	IdNode              *string  `json:"idNode,omitempty"`
+	FriendlyNameNode    *string  `json:"friendlyNameNode,omitempty"`
+	IncludeFilePatterns []string `json:"includeFilePatterns,omitempty"`
+	ExcludeFilePatterns []string `json:"excludeFilePatterns,omitempty"`
 }
 
 func NewSingleConfigBackupOptions(name string, path string) *ConfigBackupOptions {
@@ -44,11 +46,13 @@ func NewMultipleConfigBackupOptions(name string, path string, idNodeName string,
 	}
 }
 
-func NewDirectoryConfigBackupOptions(name string, path string) *ConfigBackupOptions {
+func NewDirectoryConfigBackupOptions(name string, path string, includeFilePatterns, excludeFilePatterns []string) *ConfigBackupOptions {
 	return &ConfigBackupOptions{
-		Name:       name,
-		Path:       path,
-		BackupType: "directory",
+		Name:                name,
+		Path:                path,
+		BackupType:          "directory",
+		IncludeFilePatterns: includeFilePatterns,
+		ExcludeFilePatterns: excludeFilePatterns,
 	}
 }
 
@@ -64,7 +68,28 @@ func LoadConfig(configPath string) *AppSettings {
 			NewSingleConfigBackupOptions("Configuration", "configuration.yaml"),
 			NewMultipleConfigBackupOptions("Automations", "automations.yaml", "id", "alias"),
 			NewMultipleConfigBackupOptions("Scenes", "scenes.yaml", "id", "name"),
-			NewDirectoryConfigBackupOptions("ESP Home", "esphome"),
+			NewDirectoryConfigBackupOptions("ESP Home", "esphome", []string{"*.yaml"}, []string{}),
+			NewDirectoryConfigBackupOptions("Storage", ".storage", []string{
+				"lovelace.*",
+				"core.*",
+				"counter.*",
+				"input_boolean.*",
+				"input_number.*",
+				"input_select.*",
+				"input_text.*",
+				"input_*",
+				"person",
+				"energy",
+				"schedule",
+				"timer",
+			}, []string{
+				"core.analytics",
+				"core.config_entries",
+				"core.restore_state",
+				"core.device_registry",
+				"core.entity_registry",
+				"core.uuid",
+			}),
 		},
 	}
 

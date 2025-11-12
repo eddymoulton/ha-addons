@@ -103,6 +103,13 @@ Tracks all files within a directory as single configurations.
 
 The path should be a directory path that contains one or more YAML files.
 
+
+###### Additional Options
+| Setting                   | Description                                                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Include File Patterns** | (optional) Only include files matching one of the provided glob patterns. All files are included by default                                      |
+| **Exclude File Patterns** | (optional) Exclude files matching one of the provided glob patterns. No files are included by default. You can exclude previously included files |
+
 ## Usage
 
 ### File cleanup

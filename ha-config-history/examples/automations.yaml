@@ -5,8 +5,8 @@
     settingA: true
     settingB: "valueA"
     nestedConfig:
-      option1: 10
-      option2: [1, 2, 3]
+        option1: 10
+        option2: [1, 2, 3]
   tags:
     - "example"
     - "multi-config"
@@ -18,8 +18,8 @@
     settingA: true
     settingB: "valueB"
     nestedConfig:
-      option1: 10
-      option2: [1, 2, 3]
+        option1: 10
+        option2: [1, 2, 3]
   tags:
     - "example"
     - "multi-config"

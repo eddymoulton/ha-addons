@@ -41,7 +41,8 @@ func (s *Server) startFileWatcher() {
 
 				if options.BackupType == "directory" {
 					filename := filepath.Base(event.Name)
-					backup, err := io.ReadSingleConfigFromSingleFilename(s.AppSettings.HomeAssistantConfigDir, filename, options)
+					fullDirectory := filepath.Dir(event.Name)
+					backup, err := io.ReadSingleConfigFromSingleFilename(fullDirectory, filename, options)
 					if err != nil {
 						slog.Error("Error reading updated config from file", "file", event.Name, "error", err)
 						continue
@@ -79,9 +80,8 @@ func (s *Server) startFileWatcher() {
 }
 
 func (s *Server) watchDirectoryForFile(path string, options *types.ConfigBackupOptions) error {
-	slog.Info("Adding directory to watcher for file", "directory", path, "file", options.Path)
-
 	directory := filepath.Dir(path)
+	slog.Info("Adding directory to watcher for file", "directory", directory, "file", options.Path)
 
 	for _, existing := range s.fileWatcher.WatchList() {
 		if existing == directory {

@@ -85,12 +85,18 @@
     }
 
     // Validate configs
+    const uniquePaths = new Set<string>();
     settings.configs.forEach((config, index) => {
       if (!config.name.trim()) {
         errors.push(`Config #${index + 1}: Name is required`);
       }
       if (!config.path.trim()) {
         errors.push(`Config #${index + 1}: Path is required`);
+      }
+      if (uniquePaths.has(config.path)) {
+        errors.push(`Config "${config.name}": Path must be unique`);
+      } else {
+        uniquePaths.add(config.path);
       }
       if (
         config.maxBackups !== null &&
@@ -403,7 +409,7 @@
                         id="config-path-{index}"
                         type="text"
                         bind:value={config.path}
-                        placeholder="relative/path/to/file.yaml"
+                        placeholder="relative/path/to/file_or_directory"
                       />
                     </div>
 
@@ -442,6 +448,51 @@
                             placeholder="alias"
                           />
                         </div>
+                      </div>
+                    {/if}
+
+                    {#if config.backupType === "directory"}
+                      <div class="form-group">
+                        <label for="config-include-patterns-{index}">
+                          Include File Patterns
+                          <span class="help-text"
+                            >(Comma-separated glob patterns, e.g., *.yaml,
+                            *.json)</span
+                          >
+                        </label>
+                        <input
+                          id="config-include-patterns-{index}"
+                          type="text"
+                          value={config.includeFilePatterns?.join(", ") || ""}
+                          on:input={(e) => {
+                            const value = e.currentTarget.value.trim();
+                            config.includeFilePatterns = value
+                              ? value.split(",").map((p) => p.trim())
+                              : [];
+                          }}
+                          placeholder="*.yaml, *.json"
+                        />
+                      </div>
+
+                      <div class="form-group">
+                        <label for="config-exclude-patterns-{index}">
+                          Exclude File Patterns
+                          <span class="help-text"
+                            >(Comma-separated glob patterns, e.g., *.backup)</span
+                          >
+                        </label>
+                        <input
+                          id="config-exclude-patterns-{index}"
+                          type="text"
+                          value={config.excludeFilePatterns?.join(", ") || ""}
+                          on:input={(e) => {
+                            const value = e.currentTarget.value.trim();
+                            config.excludeFilePatterns = value
+                              ? value.split(",").map((p) => p.trim())
+                              : [];
+                          }}
+                          placeholder="*.backup, temp/*"
+                        />
                       </div>
                     {/if}
 

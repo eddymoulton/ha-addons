@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"time"
 
 	"gopkg.in/yaml.v3"
@@ -44,9 +45,7 @@ type ConfigBackup struct {
 	Blob         []byte `json:"-"`
 }
 
-func NewConfigBackup(filename, filepath string, yamlNode *yaml.Node, config *ConfigBackupOptions, modifiedDate time.Time) *ConfigBackup {
-	blob, _ := yaml.Marshal(yamlNode)
-
+func NewBlobConfigBackup(filename, filepath string, blob []byte, config *ConfigBackupOptions, modifiedDate time.Time) (*ConfigBackup, error) {
 	if config.BackupType == stateName[BackupTypeSingle] {
 		return &ConfigBackup{
 			ConfigIdentifier: ConfigIdentifier{
@@ -59,22 +58,11 @@ func NewConfigBackup(filename, filepath string, yamlNode *yaml.Node, config *Con
 			BackupType:   config.BackupType,
 			FilePath:     filepath,
 			Blob:         blob,
-		}
+		}, nil
 	}
 
 	if config.BackupType == stateName[BackupTypeMultiple] {
-		return &ConfigBackup{
-			ConfigIdentifier: ConfigIdentifier{
-				ID:    GetYamlNodeValue(yamlNode, *config.IdNode),
-				Group: config.Path,
-			},
-			FriendlyName: GetYamlNodeValue(yamlNode, *config.FriendlyNameNode),
-			Hash:         hashByteSlice(blob),
-			BackupType:   config.BackupType,
-			ModifiedDate: modifiedDate,
-			FilePath:     filepath,
-			Blob:         blob,
-		}
+		return nil, fmt.Errorf("blob backups do not support multiple backup type")
 	}
 
 	if config.BackupType == stateName[BackupTypeDirectory] {
@@ -89,19 +77,37 @@ func NewConfigBackup(filename, filepath string, yamlNode *yaml.Node, config *Con
 			ModifiedDate: modifiedDate,
 			FilePath:     filepath,
 			Blob:         blob,
-		}
+		}, nil
 	}
 
-	return &ConfigBackup{
-		ConfigIdentifier: ConfigIdentifier{
-			ID:    "unknown",
-			Group: "unknown",
-		},
-		FriendlyName: "unknown",
-		Hash:         hashByteSlice(blob),
-		BackupType:   config.BackupType,
-		ModifiedDate: modifiedDate,
-		FilePath:     filepath,
-		Blob:         blob,
+	return nil, fmt.Errorf("unknown backup type: %s", config.BackupType)
+}
+
+func NewYamlConfigBackup(filename, filepath string, yamlNode *yaml.Node, config *ConfigBackupOptions, modifiedDate time.Time) (*ConfigBackup, error) {
+	blob, _ := yaml.Marshal(yamlNode)
+
+	if config.BackupType == stateName[BackupTypeSingle] {
+		return nil, fmt.Errorf("yaml backups do not support single backup type")
 	}
+
+	if config.BackupType == stateName[BackupTypeMultiple] {
+		return &ConfigBackup{
+			ConfigIdentifier: ConfigIdentifier{
+				ID:    GetYamlNodeValue(yamlNode, *config.IdNode),
+				Group: config.Path,
+			},
+			FriendlyName: GetYamlNodeValue(yamlNode, *config.FriendlyNameNode),
+			Hash:         hashByteSlice(blob),
+			BackupType:   config.BackupType,
+			ModifiedDate: modifiedDate,
+			FilePath:     filepath,
+			Blob:         blob,
+		}, nil
+	}
+
+	if config.BackupType == stateName[BackupTypeDirectory] {
+		return nil, fmt.Errorf("yaml backups do not support directory backup type")
+	}
+
+	return nil, fmt.Errorf("unknown backup type: %s", config.BackupType)
 }

@@ -29,6 +29,17 @@ func (s *Server) validateConfig() {
 		slog.Error("Home Assistant configuration directory does not exist",
 			"dir", s.AppSettings.HomeAssistantConfigDir)
 	}
+
+	uniquePaths := make(map[string]struct{})
+	for _, options := range s.AppSettings.Configs {
+		if _, exists := uniquePaths[options.Path]; exists {
+			slog.Error("Duplicate config path found in settings",
+				"path", options.Path,
+				"name", options.Name)
+		} else {
+			uniquePaths[options.Path] = struct{}{}
+		}
+	}
 }
 
 func NewServer(config *types.AppSettings) *Server {

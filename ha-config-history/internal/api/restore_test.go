@@ -166,6 +166,97 @@ func TestRestoreBackupHandler(t *testing.T) {
 
 		group := "config.yaml" // This must match the Path in ConfigBackupOptions
 		id := "test-config"
+		filename := "20240101T120000.backup"
+
+		backupPath := filepath.Join(backupDir, group, id)
+		err = os.MkdirAll(backupPath, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create backup directory: %v", err)
+		}
+
+		backupFile := filepath.Join(backupPath, filename)
+		err = os.WriteFile(backupFile, backupContent, 0644)
+		if err != nil {
+			t.Fatalf("Failed to write backup file: %v", err)
+		}
+
+		targetFile := filepath.Join(haConfigDir, "config.yaml")
+		err = os.WriteFile(targetFile, originalContent, 0644)
+		if err != nil {
+			t.Fatalf("Failed to write original config file: %v", err)
+		}
+
+		config := &types.AppSettings{
+			HomeAssistantConfigDir: haConfigDir,
+			BackupDir:              backupDir,
+			Port:                   ":8080",
+			Configs: []*types.ConfigBackupOptions{
+				{
+					Name:       "test-config",
+					Path:       "config.yaml", // This is the file path within HA config dir
+					BackupType: "single",
+				},
+			},
+		}
+
+		server := core.NewServer(config)
+
+		t.Run("Successful single file restore", func(t *testing.T) {
+			router := setupRestoreRouter(server)
+			req := createRestoreRequest(t, group, id, filename)
+
+			w := httptest.NewRecorder()
+			router.ServeHTTP(w, req)
+
+			if w.Code != http.StatusOK {
+				t.Errorf("Expected status 200, got %d. Body: %s", w.Code, w.Body.String())
+			}
+
+			var response api.RestoreBackupResponse
+			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+				t.Fatalf("Failed to parse response: %v", err)
+			}
+
+			if !response.Success {
+				t.Errorf("Expected success=true, got false. Error: %s", response.Error)
+			}
+
+			restoredContent, err := os.ReadFile(targetFile)
+			if err != nil {
+				t.Fatalf("Failed to read restored file: %v", err)
+			}
+
+			if !bytes.Equal(restoredContent, backupContent) {
+				t.Errorf("Restored content does not match backup.\nExpected:\n%s\nGot:\n%s",
+					string(backupContent), string(restoredContent))
+			}
+		})
+	})
+
+	t.Run("Single file restore (.yaml)", func(t *testing.T) {
+		gin.SetMode(gin.TestMode)
+
+		tempDir := t.TempDir()
+		backupDir := filepath.Join(tempDir, "backups")
+		haConfigDir := filepath.Join(tempDir, "ha-config")
+
+		err := os.MkdirAll(haConfigDir, 0755)
+		if err != nil {
+			t.Fatalf("Failed to create HA config directory: %v", err)
+		}
+
+		originalContent, err := os.ReadFile("test-data/single-file-original.yaml")
+		if err != nil {
+			t.Fatalf("Failed to read test data file: %v", err)
+		}
+
+		backupContent, err := os.ReadFile("test-data/single-file-backup.yaml")
+		if err != nil {
+			t.Fatalf("Failed to read test data file: %v", err)
+		}
+
+		group := "config.yaml" // This must match the Path in ConfigBackupOptions
+		id := "test-config"
 		filename := "20240101T120000.yaml"
 
 		backupPath := filepath.Join(backupDir, group, id)

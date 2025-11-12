@@ -45,7 +45,10 @@ func ReadMultipleConfigsFromSingleFile(rootPath string, config *types.ConfigBack
 	contentNode := rootNode.Content[0]
 
 	for _, yamlNode := range contentNode.Content {
-		configBackup := types.NewConfigBackup(config.Path, filePath, yamlNode, config, currentTime)
+		configBackup, err := types.NewYamlConfigBackup(config.Path, filePath, yamlNode, config, currentTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create config backup for %s: %w", filePath, err)
+		}
 		configBackups = append(configBackups, configBackup)
 	}
 
@@ -65,18 +68,10 @@ func ReadSingleConfigFromSingleFilename(rootPath, filename string, config *types
 		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
 
-	var rootNode yaml.Node
-	if err := yaml.Unmarshal(data, &rootNode); err != nil {
-		return nil, fmt.Errorf("failed to parse YAML in %s: %w", filePath, err)
+	configBackup, err := types.NewBlobConfigBackup(filename, filePath, data, config, currentTime)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
-
-	if len(rootNode.Content) != 1 || rootNode.Content[0].Kind == yaml.SequenceNode {
-		return nil, fmt.Errorf("did not expect a YAML sequence at root")
-	}
-
-	contentNode := rootNode.Content[0]
-
-	configBackup := types.NewConfigBackup(filename, filePath, contentNode, config, currentTime)
 	return configBackup, nil
 }
 
@@ -92,6 +87,21 @@ func ReadMultipleConfigsFromDirectory(rootPath string, config *types.ConfigBacku
 		if file.IsDir() {
 			continue
 		}
+
+		included, err := isFileIncluded(config, file)
+		if err != nil {
+			return nil, err
+		}
+
+		excluded, err := isFileExcluded(config, file)
+		if err != nil {
+			return nil, err
+		}
+
+		if !included || excluded {
+			continue
+		}
+
 		configBackup, err := ReadSingleConfigFromSingleFilename(directoryPath, file.Name(), config)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read config from file %s: %w", file.Name(), err)
@@ -102,11 +112,50 @@ func ReadMultipleConfigsFromDirectory(rootPath string, config *types.ConfigBacku
 	return configBackups, nil
 }
 
+func isFileIncluded(config *types.ConfigBackupOptions, file os.DirEntry) (bool, error) {
+	included := true
+	if len(config.IncludeFilePatterns) > 0 {
+		matched := false
+		for _, pattern := range config.IncludeFilePatterns {
+			match, err := filepath.Match(pattern, file.Name())
+			if err != nil {
+				return false, fmt.Errorf("invalid include pattern %s: %w", pattern, err)
+			}
+			if match {
+				matched = true
+				break
+			}
+		}
+
+		if !matched {
+			included = false
+		}
+	}
+	return included, nil
+}
+
+func isFileExcluded(config *types.ConfigBackupOptions, file os.DirEntry) (bool, error) {
+	excluded := false
+	if len(config.ExcludeFilePatterns) > 0 {
+		for _, pattern := range config.ExcludeFilePatterns {
+			match, err := filepath.Match(pattern, file.Name())
+			if err != nil {
+				return false, fmt.Errorf("invalid exclude pattern %s: %w", pattern, err)
+			}
+			if match {
+				excluded = true
+				break
+			}
+		}
+	}
+	return excluded, nil
+}
+
 func LoadAllMetadata(backupFolder string) (map[types.ConfigIdentifier]*types.ConfigMetadata, error) {
 	// BackupsFolder structure:
 	//  - group1
 	//    - config1
-	//      - 20231010T120000.yaml
+	//      - 20231010T120000.backup
 	//      - 20231011T120000.yaml
 	//      - metadata.json
 
@@ -161,7 +210,7 @@ func GetBackupDirectory(backupFolder string, configBackup *types.ConfigBackup) (
 }
 
 func SaveConfigBackup(configBackup *types.ConfigBackup, backupDirectory string) error {
-	backupPath := filepath.Join(backupDirectory, fmt.Sprintf("%s.yaml", configBackup.ModifiedDate.Format("20060102T150405")))
+	backupPath := filepath.Join(backupDirectory, fmt.Sprintf("%s.backup", configBackup.ModifiedDate.Format("20060102T150405")))
 	err := os.WriteFile(backupPath, configBackup.Blob, 0644)
 
 	if err != nil {
@@ -207,7 +256,8 @@ func CleanupAndUpdateMetadata(configBackup *types.ConfigBackup, backupOptions *t
 
 		filenames := []string{}
 		for _, entry := range entries {
-			if !entry.IsDir() && filepath.Ext(entry.Name()) == ".yaml" {
+			// TODO: V2 - remove .yaml
+			if !entry.IsDir() && (filepath.Ext(entry.Name()) == ".backup" || filepath.Ext(entry.Name()) == ".yaml") {
 				filenames = append(filenames, entry.Name())
 			}
 		}
@@ -323,13 +373,19 @@ func ListConfigBackups(backupFolder, group, configID string) ([]BackupInfo, erro
 
 	backups := []BackupInfo{}
 	for _, entry := range entries {
-		if !entry.IsDir() && filepath.Ext(entry.Name()) == ".yaml" {
+		// TODO: V2 - remove .yaml
+		// .yaml kept for compatibility with previous versions
+		if !entry.IsDir() && (filepath.Ext(entry.Name()) == ".backup" || filepath.Ext(entry.Name()) == ".yaml") {
 			info, err := entry.Info()
 			if err != nil {
 				continue
 			}
 
-			dateStr := entry.Name()[:len(entry.Name())-5] // Remove .yaml extension
+			dateStr := entry.Name()[:len(entry.Name())-7] // Remove .backup extension
+			if filepath.Ext(entry.Name()) == ".yaml" {
+				dateStr = entry.Name()[:len(entry.Name())-5] // Remove .yaml extension
+			}
+
 			date, err := time.ParseInLocation("20060102T150405", dateStr, time.UTC)
 			if err != nil {
 				date = info.ModTime()
