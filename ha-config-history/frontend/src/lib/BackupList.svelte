@@ -43,11 +43,6 @@
 
     try {
       backups = await api.getConfigBackups(config.group, config.id);
-
-      // Automatically select the first backup
-      if (backups.length > 0) {
-        onBackupClick(backups[0], backups);
-      }
     } catch (err) {
       error = err instanceof Error ? err.message : "Failed to load backups";
     } finally {

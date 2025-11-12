@@ -32,12 +32,7 @@
     error = null;
     try {
       configs = await api.getConfigs();
-
-      // Automatically select the first automation
-      if (configs.length > 0 && !selectedConfig) {
-        onConfigClick(configs[0]);
-        selectedGroup = configs[0].group;
-      }
+      selectedGroup = groups[0];
     } catch (err) {
       error = err instanceof Error ? err.message : "Failed to load configs";
     } finally {
@@ -48,13 +43,6 @@
   onMount(() => {
     loadConfigs();
   });
-
-  function handleGroupChange() {
-    // Auto-select first config in the newly selected group
-    if (filteredConfigs.length > 0) {
-      onConfigClick(filteredConfigs[0]);
-    }
-  }
 
   function handleDeleteClick(config: ConfigMetadata, event: Event) {
     event.stopPropagation();
@@ -108,7 +96,6 @@
         <select
           id="group-filter"
           bind:value={selectedGroup}
-          on:change={handleGroupChange}
           class="group-select"
         >
           {#each groups as group}
