@@ -357,7 +357,7 @@
   .diff-viewer-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: calc(100vh - 84px);
     background: var(--ha-card-background, #1c1c1e);
   }
 

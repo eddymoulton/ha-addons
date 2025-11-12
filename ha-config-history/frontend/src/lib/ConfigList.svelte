@@ -238,7 +238,7 @@
 
 <style>
   .automation-list {
-    height: 100%;
+    height: calc(100vh - 84px);
     display: flex;
     flex-direction: column;
     overflow: hidden;
