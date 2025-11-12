@@ -89,7 +89,7 @@
     width: 1px;
     height: 100%;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateY(-50%);
     background: var(--ha-card-border-color, #2c2c2e);
   }
 
@@ -97,7 +97,7 @@
     height: 1px;
     width: 100%;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateX(-50%);
     background: var(--ha-card-border-color, #2c2c2e);
   }
 

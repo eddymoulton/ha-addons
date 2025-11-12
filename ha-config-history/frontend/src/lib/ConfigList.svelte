@@ -104,14 +104,6 @@
 
   {#if !loading && !error && configs.length > 0}
     <div class="filter-section">
-      <div class="search-box">
-        <input
-          type="text"
-          placeholder="Search configs..."
-          bind:value={searchQuery}
-          class="search-input"
-        />
-      </div>
       <div class="group-filter-row">
         <select
           id="group-filter"
@@ -133,8 +125,18 @@
           ⟳
         </button>
       </div>
-      <div class="filter-count">
-        {filteredConfigs.length} config{filteredConfigs.length !== 1 ? "s" : ""}
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Search configs..."
+          bind:value={searchQuery}
+          class="search-input"
+        />
+        <div class="filter-count">
+          {filteredConfigs.length} config{filteredConfigs.length !== 1
+            ? "s"
+            : ""}
+        </div>
       </div>
     </div>
 
@@ -247,17 +249,24 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    padding: 1rem;
+    padding: 1.5rem;
     border-bottom: 1px solid var(--ha-card-border-color, #2c2c2e);
     flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--ha-card-background, #1c1c1e);
+    min-height: 140px;
   }
 
   .search-box {
     width: 100%;
+    display: flex;
+    justify-content: space-between;
   }
 
   .search-input {
-    width: 100%;
+    width: 80%;
     padding: 0.6rem;
     background: var(--ha-card-background, #2c2c2e);
     border: 1px solid var(--ha-card-border-color, #3c3c3e);
@@ -316,6 +325,7 @@
     color: var(--secondary-text-color, #9b9b9b);
     font-size: 0.85rem;
     white-space: nowrap;
+    align-content: end;
   }
 
   .grid {
@@ -331,7 +341,7 @@
     background: var(--ha-card-background, #1c1c1e);
     border: 1px solid var(--ha-card-border-color, #2c2c2e);
     border-radius: 8px;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;

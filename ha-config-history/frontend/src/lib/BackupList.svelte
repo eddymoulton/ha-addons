@@ -116,6 +116,11 @@
         </button>
       {/if}
     </div>
+    <div>
+      <div class="backup-count">
+        {backups.length} backup{backups.length !== 1 ? "s" : ""} total
+      </div>
+    </div>
   </div>
 
   <LoadingState
@@ -168,12 +173,6 @@
           </div>
         </div>
       {/each}
-    </div>
-
-    <div class="footer">
-      <p class="backup-count">
-        {backups.length} backup{backups.length !== 1 ? "s" : ""} total
-      </p>
     </div>
   {/if}
 </div>
@@ -232,6 +231,11 @@
     padding: 1.5rem;
     border-bottom: 1px solid var(--ha-card-border-color, #2c2c2e);
     flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--ha-card-background, #1c1c1e);
+    min-height: 140px;
   }
 
   .header-row {
@@ -287,14 +291,14 @@
   .backup-list {
     flex: 1;
     overflow-y: auto;
-    padding: 0.5rem;
+    padding: 1rem;
   }
 
   .backup-item {
     background: var(--ha-card-background, #2c2c2e);
     border: 1px solid var(--ha-card-border-color, #3c3c3e);
     border-radius: 6px;
-    padding: 1rem;
+    padding: 0.5rem 1rem;
     margin-bottom: 0.5rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -398,17 +402,11 @@
     gap: 0.5rem;
   }
 
-  .footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--ha-card-border-color, #2c2c2e);
-    flex-shrink: 0;
-  }
-
   .backup-count {
     color: var(--secondary-text-color, #9b9b9b);
-    font-size: 0.9rem;
-    margin: 0;
-    text-align: center;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    align-content: end;
   }
 
   .backup-info {

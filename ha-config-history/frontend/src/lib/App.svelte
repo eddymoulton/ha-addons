@@ -75,19 +75,6 @@
       })
     );
   }
-
-  function loadColumnWidths() {
-    try {
-      const saved = localStorage.getItem("columnWidths");
-      if (saved) {
-        const widths = JSON.parse(saved);
-        configColumnWidth = widths.config || DEFAULT_CONFIG_WIDTH;
-        backupColumnWidth = widths.backup || DEFAULT_BACKUP_WIDTH;
-      }
-    } catch (err) {
-      console.error("Failed to load column widths:", err);
-    }
-  }
 </script>
 
 <main class="app">
@@ -284,6 +271,9 @@
     background: var(--ha-card-background, #1c1c1e);
     border-bottom: 2px solid var(--ha-card-border-color, #2c2c2e);
     flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
   }
 
   .app-header h1 {

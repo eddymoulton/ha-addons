@@ -28,7 +28,8 @@
 
   $: {
     if (secondBackupFilename) {
-      secondBackup = allBackups.find(b => b.filename === secondBackupFilename) || null;
+      secondBackup =
+        allBackups.find((b) => b.filename === secondBackupFilename) || null;
     } else {
       secondBackup = null;
     }
@@ -40,8 +41,8 @@
 
   onMount(() => {
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   });
 
   $: if (config && selectedBackup) {
@@ -162,7 +163,9 @@
           lineNumber++;
         }
 
-        const lineNumDisplay = showLineNumber ? `<span class="line-number">${lineNumber}</span>` : '<span class="line-number"></span>';
+        const lineNumDisplay = showLineNumber
+          ? `<span class="line-number">${lineNumber}</span>`
+          : '<span class="line-number"></span>';
         return `<div class="diff-line ${lineClass}">${lineNumDisplay}<span class="line-content">${escapeHtml(line)}</span></div>`;
       })
       .join("");
@@ -224,7 +227,63 @@
         ← Back
       </button>
     {/if}
-    <h2>{selectedBackup ? selectedBackup.filename : "Select a backup"}</h2>
+    <div class="title-container">
+      <h2>{selectedBackup ? selectedBackup.filename : "Select a backup"}</h2>
+      <button
+        class="restore-btn"
+        on:click={handleRestore}
+        type="button"
+        disabled={selectedBackup?.filename === currentBackup?.filename}
+        title={selectedBackup?.filename === currentBackup?.filename
+          ? "Cannot restore current backup"
+          : "Restore this backup"}
+      >
+        Restore
+      </button>
+    </div>
+    <div class="diff-controls">
+      <div class="comparison-modes">
+        <button
+          class="mode-btn {comparisonMode === 'current' ? 'active' : ''}"
+          on:click={() => handleComparisonModeChange("current")}
+          type="button"
+        >
+          vs Current
+        </button>
+        <button
+          class="mode-btn {comparisonMode === 'previous' ? 'active' : ''}"
+          on:click={() => handleComparisonModeChange("previous")}
+          type="button"
+        >
+          vs Previous
+        </button>
+        <button
+          class="mode-btn {comparisonMode === 'two-backups' ? 'active' : ''}"
+          on:click={() => handleComparisonModeChange("two-backups")}
+          type="button"
+        >
+          Compare Two
+        </button>
+      </div>
+
+      {#if comparisonMode === "two-backups"}
+        <div class="backup-selector">
+          <label for="second-backup">Compare with:</label>
+          <select
+            id="second-backup"
+            bind:value={secondBackupFilename}
+            on:change={loadDiff}
+          >
+            <option value={null}>Select backup...</option>
+            {#each allBackups as backup (backup.filename)}
+              {#if backup.filename !== selectedBackup?.filename}
+                <option value={backup.filename}>{backup.filename}</option>
+              {/if}
+            {/each}
+          </select>
+        </div>
+      {/if}
+    </div>
   </div>
 
   <LoadingState
@@ -234,118 +293,60 @@
 
   {#if selectedBackup}
     <div class="diff-viewer">
-      <div class="diff-controls">
-        <div class="comparison-modes">
-          <button
-            class="mode-btn {comparisonMode === 'current' ? 'active' : ''}"
-            on:click={() => handleComparisonModeChange("current")}
-            type="button"
-          >
-            vs Current
-          </button>
-          <button
-            class="mode-btn {comparisonMode === 'previous' ? 'active' : ''}"
-            on:click={() => handleComparisonModeChange("previous")}
-            type="button"
-          >
-            vs Previous
-          </button>
-          <button
-            class="mode-btn {comparisonMode === 'two-backups' ? 'active' : ''}"
-            on:click={() => handleComparisonModeChange("two-backups")}
-            type="button"
-          >
-            Compare Two
-          </button>
-        </div>
-
-        {#if comparisonMode === "two-backups"}
-          <div class="backup-selector">
-            <label for="second-backup">Compare with:</label>
-            <select
-              id="second-backup"
-              bind:value={secondBackupFilename}
-              on:change={loadDiff}
-            >
-              <option value={null}>Select backup...</option>
-              {#each allBackups as backup (backup.filename)}
-                {#if backup.filename !== selectedBackup?.filename}
-                  <option value={backup.filename}>{backup.filename}</option>
-                {/if}
-              {/each}
-            </select>
-          </div>
-        {/if}
-
-        <button
-          class="restore-btn"
-          on:click={handleRestore}
-          type="button"
-          disabled={selectedBackup?.filename === currentBackup?.filename}
-          title={selectedBackup?.filename === currentBackup?.filename ? "Cannot restore current backup" : "Restore this backup"}
-        >
-          Restore
-        </button>
-      </div>
-
-      <LoadingState
-        {loading}
-        {error}
-        loadingMessage="Loading diff..."
-      />
+      <LoadingState {loading} {error} loadingMessage="Loading diff..." />
 
       {#if !loading && !error}
         {#if restoreSuccess}
           <div class="alert alert-success">{restoreSuccess}</div>
         {:else if diffData}
-        <div class="diff-content">
-          {#if diffData.type === "diff"}
-            <div class="diff-header">
-              <div class="file-info">
-                <span class="file-old">
-                  {diffData.oldFilename || "Previous"}
-                  {#if diffData.oldFilename}
-                    <small
-                      >({formatRelativeTime(
-                        allBackups.find(
-                          (b) => b.filename === diffData!.oldFilename
-                        )?.date || ""
-                      )})</small
+          <div class="diff-content">
+            {#if diffData.type === "diff"}
+              <div class="diff-header">
+                <div class="file-info">
+                  <span class="file-old">
+                    {diffData.oldFilename || "Previous"}
+                    {#if diffData.oldFilename}
+                      <small
+                        >({formatRelativeTime(
+                          allBackups.find(
+                            (b) => b.filename === diffData!.oldFilename
+                          )?.date || ""
+                        )})</small
+                      >
+                    {/if}
+                  </span>
+                  →
+                  <span class="file-new">
+                    {diffData.newFilename || "Current"}
+                    {#if diffData.newFilename}
+                      <small
+                        >({formatRelativeTime(
+                          allBackups.find(
+                            (b) => b.filename === diffData!.newFilename
+                          )?.date || ""
+                        )})</small
+                      >
+                    {/if}
+                  </span>
+                </div>
+              </div>
+              <div class="diff-body">
+                {@html renderDiff(diffData.unifiedDiff || "")}
+              </div>
+            {:else}
+              <div class="content-view">
+                <div class="content-header">
+                  <h4>Raw Content</h4>
+                  {#if diffData.isFirstBackup}
+                    <span class="first-backup-notice"
+                      >This is the first backup - no previous version to compare</span
                     >
                   {/if}
-                </span>
-                →
-                <span class="file-new">
-                  {diffData.newFilename || "Current"}
-                  {#if diffData.newFilename}
-                    <small
-                      >({formatRelativeTime(
-                        allBackups.find(
-                          (b) => b.filename === diffData!.newFilename
-                        )?.date || ""
-                      )})</small
-                    >
-                  {/if}
-                </span>
+                </div>
+                <pre class="content-body">{diffData.content}</pre>
               </div>
-            </div>
-            <div class="diff-body">
-              {@html renderDiff(diffData.unifiedDiff || "")}
-            </div>
-          {:else}
-            <div class="content-view">
-              <div class="content-header">
-                <h4>Raw Content</h4>
-                {#if diffData.isFirstBackup}
-                  <span class="first-backup-notice"
-                    >This is the first backup - no previous version to compare</span
-                  >
-                {/if}
-              </div>
-              <pre class="content-body">{diffData.content}</pre>
-            </div>
-          {/if}
-        </div>
+            {/if}
+          </div>
         {/if}
       {/if}
     </div>
@@ -360,6 +361,13 @@
     background: var(--ha-card-background, #1c1c1e);
   }
 
+  .title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
   .header {
     padding: 1.5rem;
     border-bottom: 1px solid var(--ha-card-border-color, #2c2c2e);
@@ -367,6 +375,11 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--ha-card-background, #1c1c1e);
+    min-height: 140px;
   }
 
   .back-btn {
@@ -406,11 +419,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    margin-bottom: 1rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--ha-card-border-color, #2c2c2e);
     flex-shrink: 0;
     flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 9;
+    background: var(--ha-card-background, #1c1c1e);
   }
 
   .comparison-modes {
