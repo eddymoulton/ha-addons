@@ -127,7 +127,7 @@ func LoadAllMetadata(backupFolder string) (map[types.ConfigIdentifier]*types.Con
 
 			for _, config := range configs {
 				if config.IsDir() {
-					metadataPath := filepath.Join(backupFolder, group.Name(), config.Name(), "metadata.json")
+					metadataPath := filepath.Join(groupPath, config.Name(), "metadata.json")
 					metadataBlob, err := os.ReadFile(metadataPath)
 					if err != nil {
 						return nil, fmt.Errorf("failed to read metadata file %s: %w", metadataPath, err)
