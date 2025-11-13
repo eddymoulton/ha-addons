@@ -9,6 +9,7 @@
   import ListContainer from "./components/ListContainer.svelte";
   import ListHeader from "./components/ListHeader.svelte";
   import ListContent from "./components/ListContent.svelte";
+  import ListItem from "./components/ListItem.svelte";
 
   type Props = {
     config: ConfigMetadata | null;
@@ -148,43 +149,36 @@
     {#if config && !loading && !error && backups.length > 0}
       <div class="backup-list">
         {#each backups as backup, index (backup.filename)}
-          <div
-            class="backup-item {index === 0
-              ? 'current'
-              : ''} {selectedBackup?.filename === backup.filename
-              ? 'selected'
-              : ''}"
-            onclick={() => handleBackupClick(backup)}
-            onkeydown={(e) => e.key === "Enter" && handleBackupClick(backup)}
-            tabindex="0"
-            role="button"
+          <ListItem
+            selected={selectedBackup?.filename === backup.filename}
+            variant={index === 0 ? 'current' : 'default'}
+            hoverTransform="slide"
+            on:click={() => handleBackupClick(backup)}
+            on:keydown={(e) => e.key === "Enter" && handleBackupClick(backup)}
           >
-            <div class="backup-header">
-              <div class="backup-filename">
-                {backup.date}
-              </div>
-              <div class="backup-actions">
-                <div class="backup-size">{formatFileSize(backup.size)}</div>
-                <IconButton
-                  icon="🗑️"
-                  variant="ghost"
-                  size="small"
-                  class="btn-danger"
-                  onclick={(e) => handleDeleteClick(backup, e)}
-                  type="button"
-                  title="Delete backup"
-                  aria-label="Delete backup"
-                />
-              </div>
+            <div slot="title" class="backup-filename">
+              {backup.date}
             </div>
-
-            <div class="backup-date">
+            <div slot="content" class="backup-date">
               {formatRelativeTime(backup.date)}
               {#if index === 0}
                 <span class="current-badge">Current</span>
               {/if}
             </div>
-          </div>
+            <div slot="actions" class="backup-actions">
+              <div class="backup-size">{formatFileSize(backup.size)}</div>
+              <IconButton
+                icon="🗑️"
+                variant="ghost"
+                size="small"
+                class="btn-danger"
+                onclick={(e) => handleDeleteClick(backup, e)}
+                type="button"
+                title="Delete backup"
+                aria-label="Delete backup"
+              />
+            </div>
+          </ListItem>
         {/each}
       </div>
     {/if}
@@ -241,49 +235,6 @@
     gap: 0.5rem;
   }
 
-  .backup-item {
-    background: var(--ha-card-background, #2c2c2e);
-    border: 1px solid var(--ha-card-border-color, #3c3c3e);
-    border-radius: 6px;
-    padding: 0.5rem 1rem;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    outline: none;
-  }
-
-  .backup-item:hover,
-  .backup-item:focus {
-    background: var(--ha-card-border-color, #3c3c3e);
-    border-color: var(--primary-color, #03a9f4);
-    transform: translateX(4px);
-  }
-
-  .backup-item.selected {
-    border-color: var(--primary-color, #03a9f4);
-    background: rgba(3, 169, 244, 0.1);
-  }
-
-  .backup-item.current {
-    border-color: var(--success-color, #4caf50);
-    background: rgba(76, 175, 80, 0.1);
-  }
-
-  .backup-item.current:hover,
-  .backup-item.current:focus {
-    background: rgba(76, 175, 80, 0.2);
-  }
-
-  .backup-item.current.selected {
-    background: rgba(76, 175, 80, 0.15);
-  }
-
-  .backup-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-  }
 
   .backup-filename {
     color: var(--primary-text-color, #ffffff);

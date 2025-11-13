@@ -9,6 +9,7 @@
   import ListContainer from "./components/ListContainer.svelte";
   import FilterSection from "./components/FilterSection.svelte";
   import ListContent from "./components/ListContent.svelte";
+  import ListItem from "./components/ListItem.svelte";
 
   type ConfigListProps = {
     onConfigClick: (config: ConfigMetadata) => void;
@@ -150,30 +151,14 @@
       {:else}
         <div class="grid">
           {#each filteredConfigs as config (config.id)}
-            <div
-              class="automation-card {selectedConfig?.id === config.id
-                ? 'selected'
-                : ''}"
-              onclick={() => onConfigClick(config)}
-              onkeydown={(e) => e.key === "Enter" && onConfigClick(config)}
-              tabindex="0"
-              role="button"
+            <ListItem
+              selected={selectedConfig?.id === config.id}
+              hoverTransform="lift"
+              on:click={() => onConfigClick(config)}
+              on:keydown={(e) => e.key === "Enter" && onConfigClick(config)}
             >
-              <div class="automation-header">
-                <div class="automation-title">{config.friendlyName}</div>
-                <IconButton
-                  icon="🗑️"
-                  variant="ghost"
-                  size="small"
-                  class="btn-danger"
-                  onclick={(e) => handleDeleteClick(config, e)}
-                  type="button"
-                  title="Delete all backups"
-                  aria-label="Delete all backups"
-                />
-              </div>
-
-              <div class="automation-stats">
+              <div slot="title" class="automation-title">{config.friendlyName}</div>
+              <div slot="content" class="automation-stats">
                 <div class="stat">
                   <span class="stat-label">Backups</span>
                   <span class="stat-value">{config.backupCount}</span>
@@ -185,7 +170,19 @@
                   >
                 </div>
               </div>
-            </div>
+              <div slot="actions">
+                <IconButton
+                  icon="🗑️"
+                  variant="ghost"
+                  size="small"
+                  class="btn-danger"
+                  onclick={(e) => handleDeleteClick(config, e)}
+                  type="button"
+                  title="Delete all backups"
+                  aria-label="Delete all backups"
+                />
+              </div>
+            </ListItem>
           {/each}
         </div>
       {/if}
@@ -302,36 +299,6 @@
     gap: 0.75rem;
   }
 
-  .automation-card {
-    background: var(--ha-card-background, #1c1c1e);
-    border: 1px solid var(--ha-card-border-color, #2c2c2e);
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    outline: none;
-  }
-
-  .automation-card:hover,
-  .automation-card:focus {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    border-color: var(--primary-color, #03a9f4);
-  }
-
-  .automation-card.selected {
-    border-color: var(--primary-color, #03a9f4);
-    background: rgba(3, 169, 244, 0.1);
-  }
-
-  .automation-header {
-    margin-bottom: 0.25rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
 
   .automation-title {
     color: var(--primary-text-color, #ffffff);
@@ -392,8 +359,5 @@
       text-align: center;
     }
 
-    .automation-card {
-      padding: 0.6rem 0.8rem;
-    }
   }
 </style>
