@@ -10,6 +10,7 @@
   import ListHeader from "./components/ListHeader.svelte";
   import ListContent from "./components/ListContent.svelte";
   import ListItem from "./components/ListItem.svelte";
+  import ConfirmationModal from "./components/ConfirmationModal.svelte";
 
   type Props = {
     config: ConfigMetadata | null;
@@ -185,48 +186,20 @@
   </ListContent>
 </ListContainer>
 
-{#if showDeleteConfirm}
-  <div
-    class="modal-overlay"
-    role="presentation"
-    onclick={cancelDelete}
-    onkeydown={(e) => e.key === "Escape" && cancelDelete()}
-  >
-    <div
-      class="modal-content"
-      role="dialog"
-      aria-modal="true"
-      tabindex="-1"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
-    >
-      <h3>Delete Backup?</h3>
-      <p>Are you sure you want to delete this backup?</p>
-      {#if backupToDelete}
-        <p class="backup-info">{backupToDelete.filename}</p>
-      {/if}
-      <div class="modal-actions">
-        <Button
-          variant="secondary"
-          onclick={cancelDelete}
-          type="button"
-          disabled={deleting}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="danger"
-          onclick={confirmDelete}
-          type="button"
-          disabled={deleting}
-          loading={deleting}
-        >
-          {deleting ? "Deleting..." : "Delete"}
-        </Button>
-      </div>
-    </div>
-  </div>
-{/if}
+<ConfirmationModal
+  isOpen={showDeleteConfirm}
+  title="Delete Backup?"
+  message="Are you sure you want to delete this backup?"
+  onClose={cancelDelete}
+  onConfirm={confirmDelete}
+  confirmText={deleting ? "Deleting..." : "Delete"}
+  variant="danger"
+  disabled={deleting}
+>
+  {#if backupToDelete}
+    <p class="backup-info">{backupToDelete.filename}</p>
+  {/if}
+</ConfirmationModal>
 
 <style>
   .backup-list {

@@ -10,6 +10,7 @@
   import FilterSection from "./components/FilterSection.svelte";
   import ListContent from "./components/ListContent.svelte";
   import ListItem from "./components/ListItem.svelte";
+  import ConfirmationModal from "./components/ConfirmationModal.svelte";
 
   type ConfigListProps = {
     onConfigClick: (config: ConfigMetadata) => void;
@@ -190,56 +191,23 @@
   </ListContent>
 </ListContainer>
 
-{#if showDeleteConfirm}
-  <div
-    class="modal-overlay"
-    onclick={cancelDelete}
-    onkeydown={(e) => e.key === "Escape" && cancelDelete()}
-    role="presentation"
-  >
-    <div
-      class="modal-content"
-      onclick={(e) => e.stopPropagation()}
-      onkeydown={(e) => e.stopPropagation()}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="delete-modal-title"
-      tabindex="-1"
-    >
-      <h3 id="delete-modal-title">Delete All Backups?</h3>
-      <h3>Delete All Backups?</h3>
-      <p>Are you sure you want to delete ALL backups for this config?</p>
-      {#if configToDelete}
-        <p class="config-info">{configToDelete.friendlyName}</p>
-        <p class="warning-text">
-          ⚠️ This will delete {configToDelete.backupCount} backup{configToDelete.backupCount !==
-          1
-            ? "s"
-            : ""} and cannot be undone!
-        </p>
-      {/if}
-      <div class="modal-actions">
-        <Button
-          variant="secondary"
-          onclick={cancelDelete}
-          type="button"
-          disabled={deleting}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="danger"
-          onclick={confirmDelete}
-          type="button"
-          disabled={deleting}
-          loading={deleting}
-        >
-          {deleting ? "Deleting..." : "Delete All"}
-        </Button>
-      </div>
-    </div>
-  </div>
-{/if}
+<ConfirmationModal
+  isOpen={showDeleteConfirm}
+  title="Delete All Backups?"
+  message="Are you sure you want to delete ALL backups for this config?"
+  onClose={cancelDelete}
+  onConfirm={confirmDelete}
+  confirmText={deleting ? "Deleting..." : "Delete All"}
+  variant="danger"
+  disabled={deleting}
+>
+  {#if configToDelete}
+    <p class="config-info">{configToDelete.friendlyName}</p>
+    <p class="warning-text">
+      ⚠️ This will delete {configToDelete.backupCount} backup{configToDelete.backupCount !== 1 ? "s" : ""} and cannot be undone!
+    </p>
+  {/if}
+</ConfirmationModal>
 
 <style>
 
