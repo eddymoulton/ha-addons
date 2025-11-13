@@ -6,6 +6,9 @@
   import LoadingState from "./LoadingState.svelte";
   import Button from "./components/Button.svelte";
   import IconButton from "./components/IconButton.svelte";
+  import ListContainer from "./components/ListContainer.svelte";
+  import FilterSection from "./components/FilterSection.svelte";
+  import ListContent from "./components/ListContent.svelte";
 
   type ConfigListProps = {
     onConfigClick: (config: ConfigMetadata) => void;
@@ -91,17 +94,17 @@
   }
 </script>
 
-<div class="automation-list">
-  <LoadingState
-    {loading}
-    {error}
-    empty={!loading && !error && configs.length === 0}
-    emptyMessage="No configs found"
-    loadingMessage="Loading configs..."
-  />
+<ListContainer>
+  <FilterSection slot="filter">
+    <LoadingState
+      {loading}
+      {error}
+      empty={!loading && !error && configs.length === 0}
+      emptyMessage="No configs found"
+      loadingMessage="Loading configs..."
+    />
 
-  {#if !loading && !error && configs.length > 0}
-    <div class="filter-section">
+    {#if !loading && !error && configs.length > 0}
       <div class="group-filter-row">
         <select
           id="group-filter"
@@ -137,54 +140,58 @@
             : ""}
         </div>
       </div>
-    </div>
-
-    {#if filteredConfigs.length === 0}
-      <LoadingState empty={true} emptyMessage="No configs in this group" />
-    {:else}
-      <div class="grid">
-        {#each filteredConfigs as config (config.id)}
-          <div
-            class="automation-card {selectedConfig?.id === config.id
-              ? 'selected'
-              : ''}"
-            onclick={() => onConfigClick(config)}
-            onkeydown={(e) => e.key === "Enter" && onConfigClick(config)}
-            tabindex="0"
-            role="button"
-          >
-            <div class="automation-header">
-              <div class="automation-title">{config.friendlyName}</div>
-              <IconButton
-                icon="🗑️"
-                variant="ghost"
-                size="small"
-                class="btn-danger"
-                onclick={(e) => handleDeleteClick(config, e)}
-                type="button"
-                title="Delete all backups"
-                aria-label="Delete all backups"
-              />
-            </div>
-
-            <div class="automation-stats">
-              <div class="stat">
-                <span class="stat-label">Backups</span>
-                <span class="stat-value">{config.backupCount}</span>
-              </div>
-              <div class="stat">
-                <span class="stat-label">Total Size</span>
-                <span class="stat-value"
-                  >{formatFileSize(config.backupsSize)}</span
-                >
-              </div>
-            </div>
-          </div>
-        {/each}
-      </div>
     {/if}
-  {/if}
-</div>
+  </FilterSection>
+
+  <ListContent slot="content">
+    {#if !loading && !error && configs.length > 0}
+      {#if filteredConfigs.length === 0}
+        <LoadingState empty={true} emptyMessage="No configs in this group" />
+      {:else}
+        <div class="grid">
+          {#each filteredConfigs as config (config.id)}
+            <div
+              class="automation-card {selectedConfig?.id === config.id
+                ? 'selected'
+                : ''}"
+              onclick={() => onConfigClick(config)}
+              onkeydown={(e) => e.key === "Enter" && onConfigClick(config)}
+              tabindex="0"
+              role="button"
+            >
+              <div class="automation-header">
+                <div class="automation-title">{config.friendlyName}</div>
+                <IconButton
+                  icon="🗑️"
+                  variant="ghost"
+                  size="small"
+                  class="btn-danger"
+                  onclick={(e) => handleDeleteClick(config, e)}
+                  type="button"
+                  title="Delete all backups"
+                  aria-label="Delete all backups"
+                />
+              </div>
+
+              <div class="automation-stats">
+                <div class="stat">
+                  <span class="stat-label">Backups</span>
+                  <span class="stat-value">{config.backupCount}</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-label">Total Size</span>
+                  <span class="stat-value"
+                    >{formatFileSize(config.backupsSize)}</span
+                  >
+                </div>
+              </div>
+            </div>
+          {/each}
+        </div>
+      {/if}
+    {/if}
+  </ListContent>
+</ListContainer>
 
 {#if showDeleteConfirm}
   <div
@@ -238,27 +245,6 @@
 {/if}
 
 <style>
-  .automation-list {
-    height: calc(100vh - 84px);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    background: var(--ha-card-background, #1c1c1e);
-  }
-
-  .filter-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--ha-card-border-color, #2c2c2e);
-    flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--ha-card-background, #1c1c1e);
-    min-height: 140px;
-  }
 
   .search-box {
     width: 100%;
@@ -311,9 +297,6 @@
   }
 
   .grid {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;

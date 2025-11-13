@@ -6,6 +6,9 @@
   import LoadingState from "./LoadingState.svelte";
   import Button from "./components/Button.svelte";
   import IconButton from "./components/IconButton.svelte";
+  import ListContainer from "./components/ListContainer.svelte";
+  import ListHeader from "./components/ListHeader.svelte";
+  import ListContent from "./components/ListContent.svelte";
 
   type Props = {
     config: ConfigMetadata | null;
@@ -93,9 +96,9 @@
   }
 </script>
 
-<div class="backup-list-container">
-  <div class="header">
-    <div class="header-row">
+<ListContainer>
+  <ListHeader slot="header" title={config ? config.friendlyName : "Select an config"}>
+    <svelte:fragment slot="left">
       {#if onBack && isMobile}
         <Button
           variant="outlined"
@@ -108,7 +111,8 @@
           Back
         </Button>
       {/if}
-      <h2>{config ? config.friendlyName : "Select an config"}</h2>
+    </svelte:fragment>
+    <svelte:fragment slot="right">
       {#if config}
         <Button
           variant="outlined"
@@ -122,68 +126,70 @@
           Refresh
         </Button>
       {/if}
-    </div>
-    <div>
+    </svelte:fragment>
+    <svelte:fragment slot="subtitle">
       <div class="backup-count">
         {backups.length} backup{backups.length !== 1 ? "s" : ""} total
       </div>
-    </div>
-  </div>
+    </svelte:fragment>
+  </ListHeader>
 
-  <LoadingState
-    {loading}
-    {error}
-    empty={!config || (!loading && !error && backups.length === 0)}
-    emptyMessage={!config
-      ? "Select an config to view backups"
-      : "No backups found for this config"}
-    loadingMessage="Loading backups..."
-  />
+  <ListContent slot="content">
+    <LoadingState
+      {loading}
+      {error}
+      empty={!config || (!loading && !error && backups.length === 0)}
+      emptyMessage={!config
+        ? "Select an config to view backups"
+        : "No backups found for this config"}
+      loadingMessage="Loading backups..."
+    />
 
-  {#if config && !loading && !error && backups.length > 0}
-    <div class="backup-list">
-      {#each backups as backup, index (backup.filename)}
-        <div
-          class="backup-item {index === 0
-            ? 'current'
-            : ''} {selectedBackup?.filename === backup.filename
-            ? 'selected'
-            : ''}"
-          onclick={() => handleBackupClick(backup)}
-          onkeydown={(e) => e.key === "Enter" && handleBackupClick(backup)}
-          tabindex="0"
-          role="button"
-        >
-          <div class="backup-header">
-            <div class="backup-filename">
-              {backup.date}
+    {#if config && !loading && !error && backups.length > 0}
+      <div class="backup-list">
+        {#each backups as backup, index (backup.filename)}
+          <div
+            class="backup-item {index === 0
+              ? 'current'
+              : ''} {selectedBackup?.filename === backup.filename
+              ? 'selected'
+              : ''}"
+            onclick={() => handleBackupClick(backup)}
+            onkeydown={(e) => e.key === "Enter" && handleBackupClick(backup)}
+            tabindex="0"
+            role="button"
+          >
+            <div class="backup-header">
+              <div class="backup-filename">
+                {backup.date}
+              </div>
+              <div class="backup-actions">
+                <div class="backup-size">{formatFileSize(backup.size)}</div>
+                <IconButton
+                  icon="🗑️"
+                  variant="ghost"
+                  size="small"
+                  class="btn-danger"
+                  onclick={(e) => handleDeleteClick(backup, e)}
+                  type="button"
+                  title="Delete backup"
+                  aria-label="Delete backup"
+                />
+              </div>
             </div>
-            <div class="backup-actions">
-              <div class="backup-size">{formatFileSize(backup.size)}</div>
-              <IconButton
-                icon="🗑️"
-                variant="ghost"
-                size="small"
-                class="btn-danger"
-                onclick={(e) => handleDeleteClick(backup, e)}
-                type="button"
-                title="Delete backup"
-                aria-label="Delete backup"
-              />
+
+            <div class="backup-date">
+              {formatRelativeTime(backup.date)}
+              {#if index === 0}
+                <span class="current-badge">Current</span>
+              {/if}
             </div>
           </div>
-
-          <div class="backup-date">
-            {formatRelativeTime(backup.date)}
-            {#if index === 0}
-              <span class="current-badge">Current</span>
-            {/if}
-          </div>
-        </div>
-      {/each}
-    </div>
-  {/if}
-</div>
+        {/each}
+      </div>
+    {/if}
+  </ListContent>
+</ListContainer>
 
 {#if showDeleteConfirm}
   <div
@@ -229,42 +235,10 @@
 {/if}
 
 <style>
-  .backup-list-container {
+  .backup-list {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 84px);
-    background: var(--ha-card-background, #1c1c1e);
-  }
-
-  .header {
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--ha-card-border-color, #2c2c2e);
-    flex-shrink: 0;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--ha-card-background, #1c1c1e);
-    min-height: 140px;
-  }
-
-  .header-row {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .header h2 {
-    margin: 0;
-    color: var(--primary-text-color, #ffffff);
-    font-size: 1.2rem;
-    font-weight: 500;
-    flex: 1;
-  }
-
-  .backup-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
+    gap: 0.5rem;
   }
 
   .backup-item {
