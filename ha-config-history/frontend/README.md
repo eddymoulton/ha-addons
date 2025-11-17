@@ -6,6 +6,6 @@ Relies on the go backend for serving built files.
 
 `npm run build`
 
-##s# Development
+## Development
 
 `npm run watch`
