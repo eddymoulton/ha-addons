@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/eddymoulton/ha-config-history/compare/ha-config-history-v1.2.0...ha-config-history-v1.2.1) (2025-11-17)
+
+
+### Bug Fixes
+
+* directory restores ([d952527](https://github.com/eddymoulton/ha-config-history/commit/d952527d51400fe7ebe3290d8f045239d7dc1559))
+
 ## [1.2.0](https://github.com/eddymoulton/ha-config-history/compare/ha-config-history-v1.1.1...ha-config-history-v1.2.0) (2025-11-12)
 
 
