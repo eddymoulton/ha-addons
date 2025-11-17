@@ -3,14 +3,9 @@
 	 * ListContainer - A reusable container component for list layouts
 	 * Provides consistent structure with header, filter, and content areas
 	 */
-	interface $$Props {
-		class?: string;
-	}
+	let { class: className = '' }: { class?: string } = $props();
 
-	let className: $$Props['class'] = '';
-	export { className as class };
-
-	$: containerClass = ['list-container', className].filter(Boolean).join(' ');
+	const containerClass = $derived(['list-container', className].filter(Boolean).join(' '));
 </script>
 
 <div class={containerClass}>

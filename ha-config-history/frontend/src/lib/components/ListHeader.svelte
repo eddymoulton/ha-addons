@@ -3,18 +3,13 @@
 	 * ListHeader - A reusable header component for lists
 	 * Provides consistent header styling with title and optional action slots
 	 */
-	interface $$Props {
+	let { class: className = '', title = undefined, subtitle = undefined }: {
+		class?: string;
 		title?: string;
 		subtitle?: string;
-		class?: string;
-	}
+	} = $props();
 
-	export let title: $$Props['title'] = undefined;
-	export let subtitle: $$Props['subtitle'] = undefined;
-	let className: $$Props['class'] = '';
-	export { className as class };
-
-	$: headerClass = ['list-header', className].filter(Boolean).join(' ');
+	const headerClass = $derived(['list-header', className].filter(Boolean).join(' '));
 </script>
 
 <div class={headerClass}>
@@ -27,13 +22,13 @@
 		{/if}
 		<slot name="right" />
 	</div>
-	{#if subtitle || $$slots.subtitle}
+	{#if subtitle}
 		<div class="header-subtitle">
-			{#if subtitle}
-				<div class="subtitle-text">{subtitle}</div>
-			{:else}
-				<slot name="subtitle" />
-			{/if}
+			<div class="subtitle-text">{subtitle}</div>
+		</div>
+	{:else}
+		<div class="header-subtitle">
+			<slot name="subtitle" />
 		</div>
 	{/if}
 </div>

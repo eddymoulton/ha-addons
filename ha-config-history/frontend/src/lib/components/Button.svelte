@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { HTMLButtonAttributes } from 'svelte/elements';
 
-	interface $$Props extends HTMLButtonAttributes {
+	interface Props extends HTMLButtonAttributes {
 		variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'outlined' | 'ghost';
 		size?: 'small' | 'medium' | 'large';
 		fullWidth?: boolean;
@@ -11,16 +11,24 @@
 		class?: string;
 	}
 
-	export let variant: $$Props['variant'] = 'primary';
-	export let size: $$Props['size'] = 'medium';
-	export let fullWidth: $$Props['fullWidth'] = false;
-	export let loading: $$Props['loading'] = false;
-	export let icon: $$Props['icon'] = undefined;
-	export let iconPosition: $$Props['iconPosition'] = 'left';
-	let className: $$Props['class'] = '';
-	export { className as class };
+	let {
+		variant = 'primary',
+		size = 'medium',
+		fullWidth = false,
+		loading = false,
+		icon = undefined,
+		iconPosition = 'left',
+		class: className = '',
+		disabled = false,
+		onclick = undefined,
+		onmouseenter = undefined,
+		onmouseleave = undefined,
+		onfocus = undefined,
+		onblur = undefined,
+		...restProps
+	}: Props = $props();
 
-	$: buttonClass = [
+	const buttonClass = $derived([
 		'btn',
 		`btn-${variant}`,
 		`btn-${size}`,
@@ -29,18 +37,18 @@
 		className
 	]
 		.filter(Boolean)
-		.join(' ');
+		.join(' '));
 </script>
 
 <button
 	class={buttonClass}
-	disabled={$$restProps.disabled || loading}
-	on:click
-	on:mouseenter
-	on:mouseleave
-	on:focus
-	on:blur
-	{...$$restProps}
+	disabled={disabled || loading}
+	{onclick}
+	{onmouseenter}
+	{onmouseleave}
+	{onfocus}
+	{onblur}
+	{...restProps}
 >
 	{#if loading}
 		<span class="btn-spinner" aria-hidden="true">⟳</span>

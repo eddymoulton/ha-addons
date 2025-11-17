@@ -2,7 +2,7 @@
 	import type { HTMLButtonAttributes } from 'svelte/elements';
 	import Button from './Button.svelte';
 
-	interface $$Props extends HTMLButtonAttributes {
+	interface Props extends HTMLButtonAttributes {
 		icon: string;
 		variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'outlined' | 'ghost';
 		size?: 'small' | 'medium' | 'large';
@@ -11,34 +11,41 @@
 		label?: string;
 	}
 
-	export let icon: $$Props['icon'];
-	export let variant: $$Props['variant'] = 'ghost';
-	export let size: $$Props['size'] = 'medium';
-	export let loading: $$Props['loading'] = false;
-	export let label: $$Props['label'] = undefined;
-	let className: $$Props['class'] = '';
-	export { className as class };
+	let {
+		icon,
+		variant = 'ghost',
+		size = 'medium',
+		loading = false,
+		label = undefined,
+		class: className = '',
+		onclick = undefined,
+		onmouseenter = undefined,
+		onmouseleave = undefined,
+		onfocus = undefined,
+		onblur = undefined,
+		...restProps
+	}: Props = $props();
 
-	$: iconButtonClass = [
+	const iconButtonClass = $derived([
 		'icon-btn',
 		`icon-btn-${size}`,
 		className
 	]
 		.filter(Boolean)
-		.join(' ');
+		.join(' '));
 </script>
 
 <Button
 	class={iconButtonClass}
 	{variant}
 	{loading}
-	on:click
-	on:mouseenter
-	on:mouseleave
-	on:focus
-	on:blur
-	aria-label={label || $$restProps['aria-label']}
-	{...$$restProps}
+	{onclick}
+	{onmouseenter}
+	{onmouseleave}
+	{onfocus}
+	{onblur}
+	aria-label={label || restProps['aria-label']}
+	{...restProps}
 >
 	{#if !loading}
 		<span class="icon-btn-content" aria-hidden="true">{icon}</span>

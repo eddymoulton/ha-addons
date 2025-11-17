@@ -3,14 +3,9 @@
 	 * FilterSection - A reusable filter section component for lists
 	 * Provides consistent styling for filter controls
 	 */
-	interface $$Props {
-		class?: string;
-	}
+	let { class: className = '' }: { class?: string } = $props();
 
-	let className: $$Props['class'] = '';
-	export { className as class };
-
-	$: sectionClass = ['filter-section', className].filter(Boolean).join(' ');
+	const sectionClass = $derived(['filter-section', className].filter(Boolean).join(' '));
 </script>
 
 <div class={sectionClass}>

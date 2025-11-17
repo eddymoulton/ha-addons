@@ -1,8 +1,12 @@
 <script lang="ts">
-  export let selected = false;
-  export let variant: 'default' | 'current' = 'default';
-  export let clickable = true;
-  export let hoverTransform: 'lift' | 'slide' | 'none' = 'lift';
+  let { selected = false, variant = 'default' as 'default' | 'current', clickable = true, hoverTransform = 'lift' as 'lift' | 'slide' | 'none', onclick = undefined, onkeydown = undefined }: {
+    selected?: boolean;
+    variant?: 'default' | 'current';
+    clickable?: boolean;
+    hoverTransform?: 'lift' | 'slide' | 'none';
+    onclick?: (event: MouseEvent) => void;
+    onkeydown?: (event: KeyboardEvent) => void;
+  } = $props();
 </script>
 
 <div
@@ -12,8 +16,8 @@
   class:clickable
   class:hover-lift={hoverTransform === 'lift'}
   class:hover-slide={hoverTransform === 'slide'}
-  on:click
-  on:keydown
+  {onclick}
+  {onkeydown}
   role={clickable ? 'button' : undefined}
   tabindex={clickable ? 0 : undefined}
 >

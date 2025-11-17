@@ -1,10 +1,7 @@
 <script>
-  export let type = 'info';
-  export let message = '';
-  export let dismissable = false;
-  export let onDismiss = null;
+  let { type = 'info', message = '', dismissable = false, onDismiss = null } = $props();
 
-  $: alertClass = `alert alert-${type}`;
+  const alertClass = $derived(`alert alert-${type}`);
 </script>
 
 {#if message}
@@ -13,7 +10,7 @@
       <slot>{message}</slot>
     </div>
     {#if dismissable && onDismiss}
-      <button class="alert-dismiss" on:click={onDismiss} aria-label="Dismiss alert">
+      <button class="alert-dismiss" onclick={onDismiss} aria-label="Dismiss alert">
         ×
       </button>
     {/if}

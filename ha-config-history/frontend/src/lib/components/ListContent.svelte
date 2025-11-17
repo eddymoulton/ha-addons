@@ -3,16 +3,9 @@
 	 * ListContent - A reusable scrollable content area for lists
 	 * Provides consistent styling for list content with overflow
 	 */
-	interface $$Props {
-		class?: string;
-		padding?: string;
-	}
+	let { class: className = '', padding = '1rem' }: { class?: string; padding?: string } = $props();
 
-	export let padding: $$Props['padding'] = '1rem';
-	let className: $$Props['class'] = '';
-	export { className as class };
-
-	$: contentClass = ['list-content', className].filter(Boolean).join(' ');
+	const contentClass = $derived(['list-content', className].filter(Boolean).join(' '));
 </script>
 
 <div class={contentClass} style:padding>
