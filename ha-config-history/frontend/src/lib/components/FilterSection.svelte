@@ -1,6 +1,8 @@
 <script lang="ts">
-  type Props = { class?: string };
-  let { class: className = "" }: Props = $props();
+  import type { Snippet } from "svelte";
+
+  type Props = { class?: string; children: Snippet };
+  let { class: className = "", children }: Props = $props();
 
   const sectionClass = $derived(
     ["filter-section", className].filter(Boolean).join(" ")
@@ -8,7 +10,7 @@
 </script>
 
 <div class={sectionClass}>
-  <slot />
+  {@render children()}
 </div>
 
 <style>
