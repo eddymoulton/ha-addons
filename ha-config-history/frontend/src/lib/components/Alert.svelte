@@ -12,10 +12,14 @@
   const alertClass = $derived(`alert alert-${type}`);
 </script>
 
-{#if message}
+{#if message || children}
   <div class={alertClass}>
     <div class="alert-content">
-      {@render children?.()}
+      {#if message}
+        {message}
+      {:else}
+        {@render children?.()}
+      {/if}
     </div>
   </div>
 {/if}
