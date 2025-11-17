@@ -1,22 +1,24 @@
 <script lang="ts">
-  import Card from './Card.svelte';
+  import Card from "./Card.svelte";
 
-  let { selected = false, variant = 'default' as 'default' | 'current', hoverTransform = 'lift' as 'lift' | 'slide' | 'none', onclick = undefined, onkeydown = undefined }: {
+  type Props = {
     selected?: boolean;
-    variant?: 'default' | 'current';
-    hoverTransform?: 'lift' | 'slide' | 'none';
+    variant?: "default" | "current";
+    hoverTransform?: "lift" | "slide" | "none";
     onclick?: (event: MouseEvent) => void;
     onkeydown?: (event: KeyboardEvent) => void;
-  } = $props();
+  };
+
+  let {
+    selected = false,
+    variant = "default" as "default" | "current",
+    hoverTransform = "lift" as "lift" | "slide" | "none",
+    onclick = undefined,
+    onkeydown = undefined,
+  }: Props = $props();
 </script>
 
-<Card
-  {selected}
-  {variant}
-  {hoverTransform}
-  {onclick}
-  {onkeydown}
->
+<Card {selected} {variant} {hoverTransform} {onclick} {onkeydown}>
   <div class="list-item-content">
     <div class="list-item-main">
       <slot name="title" />

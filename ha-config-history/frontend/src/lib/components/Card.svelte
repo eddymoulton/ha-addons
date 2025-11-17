@@ -1,24 +1,33 @@
 <script lang="ts">
-  let { selected = false, variant = 'default' as 'default' | 'current', clickable = true, hoverTransform = 'lift' as 'lift' | 'slide' | 'none', onclick = undefined, onkeydown = undefined }: {
+  type Props = {
     selected?: boolean;
-    variant?: 'default' | 'current';
+    variant?: "default" | "current";
     clickable?: boolean;
-    hoverTransform?: 'lift' | 'slide' | 'none';
+    hoverTransform?: "lift" | "slide" | "none";
     onclick?: (event: MouseEvent) => void;
     onkeydown?: (event: KeyboardEvent) => void;
-  } = $props();
+  };
+
+  let {
+    selected = false,
+    variant = "default" as "default" | "current",
+    clickable = true,
+    hoverTransform = "lift" as "lift" | "slide" | "none",
+    onclick = undefined,
+    onkeydown = undefined,
+  }: Props = $props();
 </script>
 
 <div
   class="card"
   class:selected
-  class:current={variant === 'current'}
+  class:current={variant === "current"}
   class:clickable
-  class:hover-lift={hoverTransform === 'lift'}
-  class:hover-slide={hoverTransform === 'slide'}
+  class:hover-lift={hoverTransform === "lift"}
+  class:hover-slide={hoverTransform === "slide"}
   {onclick}
   {onkeydown}
-  role={clickable ? 'button' : undefined}
+  role={clickable ? "button" : undefined}
   tabindex={clickable ? 0 : undefined}
 >
   <slot />

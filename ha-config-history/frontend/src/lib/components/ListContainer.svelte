@@ -1,25 +1,28 @@
 <script lang="ts">
-	/**
-	 * ListContainer - A reusable container component for list layouts
-	 * Provides consistent structure with header, filter, and content areas
-	 */
-	let { class: className = '' }: { class?: string } = $props();
+  /**
+   * ListContainer - A reusable container component for list layouts
+   * Provides consistent structure with header, filter, and content areas
+   */
+  type Props = { class?: string };
+  let { class: className = "" }: Props = $props();
 
-	const containerClass = $derived(['list-container', className].filter(Boolean).join(' '));
+  const containerClass = $derived(
+    ["list-container", className].filter(Boolean).join(" ")
+  );
 </script>
 
 <div class={containerClass}>
-	<slot name="header" />
-	<slot name="filter" />
-	<slot name="content" />
+  <slot name="header" />
+  <slot name="filter" />
+  <slot name="content" />
 </div>
 
 <style>
-	.list-container {
-		height: calc(100vh - 84px);
-		display: flex;
-		flex-direction: column;
-		overflow: hidden;
-		background: var(--ha-card-background, #1c1c1e);
-	}
+  .list-container {
+    height: calc(100vh - 84px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--ha-card-background, #1c1c1e);
+  }
 </style>

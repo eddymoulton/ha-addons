@@ -1,5 +1,12 @@
-<script>
-  let { type = 'info', message = '', dismissable = false, onDismiss = null } = $props();
+<script lang="ts">
+  type Props = {
+    type?: 'info' | 'error' | 'warning' | 'success';
+    message?: string;
+    dismissable?: boolean;
+    onDismiss?: (() => void) | null;
+  };
+
+  let { type = 'info', message = '', dismissable = false, onDismiss = null }: Props = $props();
 
   const alertClass = $derived(`alert alert-${type}`);
 </script>
