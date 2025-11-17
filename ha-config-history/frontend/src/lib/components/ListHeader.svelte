@@ -9,7 +9,6 @@
     title?: string;
     subtitle?: string;
     left?: Snippet;
-    titleSnippet?: Snippet;
     right?: Snippet;
     subtitleSnippet?: Snippet;
   };
@@ -17,7 +16,6 @@
     title = undefined,
     subtitle = undefined,
     left = undefined,
-    titleSnippet = undefined,
     right = undefined,
     subtitleSnippet = undefined,
   }: Props = $props();
@@ -32,8 +30,6 @@
     {/if}
     {#if title}
       <h2>{title}</h2>
-    {:else if titleSnippet}
-      {@render titleSnippet()}
     {/if}
     {#if right}
       {@render right()}

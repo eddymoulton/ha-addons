@@ -23,10 +23,6 @@
     size = "medium",
     loading = false,
     onclick = undefined,
-    onmouseenter = undefined,
-    onmouseleave = undefined,
-    onfocus = undefined,
-    onblur = undefined,
     ...restProps
   }: Props = $props();
 
@@ -47,10 +43,6 @@
   {variant}
   {loading}
   {onclick}
-  {onmouseenter}
-  {onmouseleave}
-  {onfocus}
-  {onblur}
   aria-label={restProps["aria-label"]}
   {...restProps}
 ></Button>

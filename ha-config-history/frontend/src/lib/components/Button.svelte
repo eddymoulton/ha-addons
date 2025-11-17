@@ -30,10 +30,6 @@
     class: className = "",
     disabled = false,
     onclick = undefined,
-    onmouseenter = undefined,
-    onmouseleave = undefined,
-    onfocus = undefined,
-    onblur = undefined,
     ...restProps
   }: Props = $props();
 
@@ -55,10 +51,6 @@
   class={buttonClass}
   disabled={disabled || loading}
   {onclick}
-  {onmouseenter}
-  {onmouseleave}
-  {onfocus}
-  {onblur}
   {...restProps}
 >
   {#if loading}
