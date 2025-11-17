@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   type Props = {
     selected?: boolean;
     variant?: "default" | "current";
@@ -6,6 +8,7 @@
     hoverTransform?: "lift" | "slide" | "none";
     onclick?: (event: MouseEvent) => void;
     onkeydown?: (event: KeyboardEvent) => void;
+    children?: Snippet;
   };
 
   let {
@@ -15,6 +18,7 @@
     hoverTransform = "lift" as "lift" | "slide" | "none",
     onclick = undefined,
     onkeydown = undefined,
+    children = undefined,
   }: Props = $props();
 </script>
 
@@ -28,9 +32,8 @@
   {onclick}
   {onkeydown}
   role={clickable ? "button" : undefined}
-  tabindex={clickable ? 0 : undefined}
 >
-  <slot />
+  {@render children?.()}
 </div>
 
 <style>

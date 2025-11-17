@@ -99,10 +99,7 @@
 </script>
 
 <ListContainer>
-  <ListHeader
-    slot="header"
-    title={config ? config.friendlyName : "Select an config"}
-  >
+  <ListHeader title={config ? config.friendlyName : "Select an config"}>
     <svelte:fragment slot="left">
       {#if onBack && isMobile}
         <Button
@@ -137,7 +134,7 @@
     </svelte:fragment>
   </ListHeader>
 
-  <ListContent slot="content">
+  <ListContent>
     <LoadingState
       {loading}
       {error}
@@ -221,12 +218,6 @@
     letter-spacing: 0.5px;
   }
 
-  .backup-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
   .backup-size {
     color: var(--secondary-text-color, #9b9b9b);
     font-size: 0.85rem;
@@ -256,17 +247,5 @@
     border-radius: 4px;
     color: var(--primary-text-color, #ffffff);
     font-size: 0.85rem;
-  }
-
-  @media (max-width: 1024px) {
-    .backup-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.5rem;
-    }
-
-    .backup-filename {
-      font-size: 0.8rem;
-    }
   }
 </style>

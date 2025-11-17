@@ -2,15 +2,15 @@
   interface FormSelectProps {
     id?: string;
     value: string;
-    class?: string;
     children?: any;
+    style?: "group-select" | null;
   }
 
   let {
     id,
     value = $bindable(),
-    class: className = "",
     children,
+    style = null,
     ...restProps
   }: FormSelectProps = $props();
 </script>
@@ -18,7 +18,7 @@
 <select
   {id}
   bind:value
-  class="form-select {className}"
+  class="form-select {style === 'group-select' ? 'group-select' : ''}"
   {...restProps}
 >
   {@render children?.()}

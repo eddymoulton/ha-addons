@@ -1,20 +1,18 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   /**
    * ListContainer - A reusable container component for list layouts
    * Provides consistent structure with header, filter, and content areas
    */
-  type Props = { class?: string };
-  let { class: className = "" }: Props = $props();
+  type Props = { children: Snippet };
+  let { children }: Props = $props();
 
-  const containerClass = $derived(
-    ["list-container", className].filter(Boolean).join(" ")
-  );
+  const containerClass = $derived(["list-container"].filter(Boolean).join(" "));
 </script>
 
 <div class={containerClass}>
-  <slot name="header" />
-  <slot name="filter" />
-  <slot name="content" />
+  {@render children()}
 </div>
 
 <style>

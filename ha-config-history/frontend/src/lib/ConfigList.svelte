@@ -105,7 +105,7 @@
 </script>
 
 <ListContainer>
-  <FilterSection slot="filter">
+  <FilterSection>
     <LoadingState
       {loading}
       {error}
@@ -119,7 +119,7 @@
         <FormSelect
           id="group-filter"
           bind:value={selectedGroup}
-          class="group-select"
+          style="group-select"
         >
           {#snippet children()}
             {#each groups as group}
@@ -154,7 +154,7 @@
     {/if}
   </FilterSection>
 
-  <ListContent slot="content">
+  <ListContent>
     {#if !loading && !error && configs.length > 0}
       {#if filteredConfigs.length === 0}
         <LoadingState empty={true} emptyMessage="No configs in this group" />
