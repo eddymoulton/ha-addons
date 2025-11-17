@@ -3,7 +3,7 @@
   import type { HTMLButtonAttributes } from "svelte/elements";
 
   interface Props extends HTMLButtonAttributes {
-    label: string;
+    label: string | Snippet;
     variant?:
       | "primary"
       | "secondary"
@@ -66,7 +66,11 @@
   {:else if icon && iconPosition === "left"}
     <span class="btn-icon" aria-hidden="true">{icon}</span>
   {/if}
-  {label}
+  {#if typeof label === "function"}
+    {@render label()}
+  {:else}
+    {label}
+  {/if}
   {#if icon && iconPosition === "right" && !loading}
     <span class="btn-icon" aria-hidden="true">{icon}</span>
   {/if}
