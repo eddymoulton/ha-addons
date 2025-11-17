@@ -451,28 +451,25 @@
 
                     {#if editingConfigIndex === index}
                       <div class="config-details">
-                        <div class="form-group">
-                          <label for="config-name-{index}">Name</label>
+                        <FormGroup label="Name" for="config-name-{index}">
                           <input
                             id="config-name-{index}"
                             type="text"
                             bind:value={config.name}
                             placeholder="Config name"
                           />
-                        </div>
+                        </FormGroup>
 
-                        <div class="form-group">
-                          <label for="config-path-{index}">Path</label>
+                        <FormGroup label="Path" for="config-path-{index}">
                           <input
                             id="config-path-{index}"
                             type="text"
                             bind:value={config.path}
                             placeholder="relative/path/to/file_or_directory"
                           />
-                        </div>
+                        </FormGroup>
 
-                        <div class="form-group">
-                          <label for="config-type-{index}">Backup Type</label>
+                        <FormGroup label="Backup Type" for="config-type-{index}">
                           <select
                             id="config-type-{index}"
                             bind:value={config.backupType}
@@ -481,44 +478,36 @@
                             <option value="single">Single</option>
                             <option value="directory">Directory</option>
                           </select>
-                        </div>
+                        </FormGroup>
 
                         {#if config.backupType === "multiple"}
                           <div class="form-row">
-                            <div class="form-group">
-                              <label for="config-id-node-{index}">ID Node</label
-                              >
+                            <FormGroup label="ID Node" for="config-id-node-{index}">
                               <input
                                 id="config-id-node-{index}"
                                 type="text"
                                 bind:value={config.idNode}
                                 placeholder="id"
                               />
-                            </div>
+                            </FormGroup>
 
-                            <div class="form-group">
-                              <label for="config-friendly-node-{index}"
-                                >Friendly Name Node</label
-                              >
+                            <FormGroup label="Friendly Name Node" for="config-friendly-node-{index}">
                               <input
                                 id="config-friendly-node-{index}"
                                 type="text"
                                 bind:value={config.friendlyNameNode}
                                 placeholder="alias"
                               />
-                            </div>
+                            </FormGroup>
                           </div>
                         {/if}
 
                         {#if config.backupType === "directory"}
-                          <div class="form-group">
-                            <label for="config-include-patterns-{index}">
-                              Include File Patterns
-                              <span class="help-text"
-                                >(Comma-separated glob patterns, e.g., *.yaml,
-                                *.json)</span
-                              >
-                            </label>
+                          <FormGroup
+                            label="Include File Patterns"
+                            for="config-include-patterns-{index}"
+                            helpText="(Comma-separated glob patterns, e.g., *.yaml, *.json)"
+                          >
                             <input
                               id="config-include-patterns-{index}"
                               type="text"
@@ -532,15 +521,13 @@
                               }}
                               placeholder="*.yaml, *.json"
                             />
-                          </div>
+                          </FormGroup>
 
-                          <div class="form-group">
-                            <label for="config-exclude-patterns-{index}">
-                              Exclude File Patterns
-                              <span class="help-text"
-                                >(Comma-separated glob patterns, e.g., *.backup)</span
-                              >
-                            </label>
+                          <FormGroup
+                            label="Exclude File Patterns"
+                            for="config-exclude-patterns-{index}"
+                            helpText="(Comma-separated glob patterns, e.g., *.backup)"
+                          >
                             <input
                               id="config-exclude-patterns-{index}"
                               type="text"
@@ -554,14 +541,11 @@
                               }}
                               placeholder="*.backup, temp/*"
                             />
-                          </div>
+                          </FormGroup>
                         {/if}
 
                         <div class="form-row">
-                          <div class="form-group">
-                            <label for="config-max-backups-{index}"
-                              >Max Backups</label
-                            >
+                          <FormGroup label="Max Backups" for="config-max-backups-{index}">
                             <input
                               id="config-max-backups-{index}"
                               type="number"
@@ -569,12 +553,9 @@
                               placeholder="Default"
                               min="1"
                             />
-                          </div>
+                          </FormGroup>
 
-                          <div class="form-group">
-                            <label for="config-max-age-{index}"
-                              >Max Age (Days)</label
-                            >
+                          <FormGroup label="Max Age (Days)" for="config-max-age-{index}">
                             <input
                               id="config-max-age-{index}"
                               type="number"
@@ -582,7 +563,7 @@
                               placeholder="Default"
                               min="1"
                             />
-                          </div>
+                          </FormGroup>
                         </div>
                       </div>
                     {/if}
@@ -672,24 +653,6 @@
 
   .section-header {
     margin: 0;
-  }
-
-  .form-group {
-    margin-bottom: 1rem;
-  }
-
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: var(--primary-text-color, #ffffff);
-    font-size: 0.9rem;
-    font-weight: 500;
-  }
-
-  .help-text {
-    color: var(--secondary-text-color, #9b9b9b);
-    font-size: 0.8rem;
-    font-weight: 400;
   }
 
   .form-row {
