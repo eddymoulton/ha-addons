@@ -39,21 +39,6 @@
     flex: 1;
   }
 
-  .alert-dismiss {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0;
-    margin-left: 1rem;
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-  }
-
-  .alert-dismiss:hover {
-    opacity: 1;
-  }
-
   .alert-error {
     background: rgba(244, 67, 54, 0.1);
     border: 1px solid var(--error-color);
@@ -70,12 +55,6 @@
     background: rgba(76, 175, 80, 0.1);
     border: 1px solid var(--success-color);
     color: var(--success-color);
-  }
-
-  .alert-info {
-    background: rgba(33, 150, 243, 0.1);
-    border: 1px solid var(--info-color);
-    color: var(--info-color);
   }
 
   .alert :global(ul) {

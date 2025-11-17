@@ -28,8 +28,6 @@
 
   @media (max-width: 768px) {
     .filter-section {
-      flex-direction: column;
-      align-items: stretch;
       gap: 0.5rem;
     }
   }

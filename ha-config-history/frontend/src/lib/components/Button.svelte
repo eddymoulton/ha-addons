@@ -168,16 +168,6 @@
     color: white;
   }
 
-  .btn-outlined.btn-danger {
-    color: var(--error-color);
-    border-color: var(--error-color);
-  }
-
-  .btn-outlined.btn-danger:hover:not(:disabled) {
-    background: var(--error-color);
-    color: white;
-  }
-
   .btn-ghost {
     background: transparent;
     color: var(--primary-text-color);
