@@ -98,41 +98,48 @@
   }
 </script>
 
+{#snippet leftContent()}
+  {#if onBack && isMobile}
+    <Button
+      label="Back"
+      variant="outlined"
+      size="small"
+      onclick={onBack}
+      type="button"
+      aria-label="Back to configs"
+      icon="←"
+    ></Button>
+  {/if}
+{/snippet}
+
+{#snippet rightContent()}
+  {#if config}
+    <Button
+      label="Refresh"
+      variant="outlined"
+      size="small"
+      onclick={loadBackups}
+      type="button"
+      title="Refresh backups"
+      aria-label="Refresh backups"
+      icon="⟳"
+    ></Button>
+  {/if}
+{/snippet}
+
+{#snippet subtitleContent()}
+  <div class="backup-count">
+    {backups.length} backup{backups.length !== 1 ? "s" : ""} total
+  </div>
+{/snippet}
+
 <ListContainer>
-  <ListHeader title={config ? config.friendlyName : "Select an config"}>
-    <svelte:fragment slot="left">
-      {#if onBack && isMobile}
-        <Button
-          label="Back"
-          variant="outlined"
-          size="small"
-          onclick={onBack}
-          type="button"
-          aria-label="Back to configs"
-          icon="←"
-        ></Button>
-      {/if}
-    </svelte:fragment>
-    <svelte:fragment slot="right">
-      {#if config}
-        <Button
-          label="Refresh"
-          variant="outlined"
-          size="small"
-          onclick={loadBackups}
-          type="button"
-          title="Refresh backups"
-          aria-label="Refresh backups"
-          icon="⟳"
-        ></Button>
-      {/if}
-    </svelte:fragment>
-    <svelte:fragment slot="subtitle">
-      <div class="backup-count">
-        {backups.length} backup{backups.length !== 1 ? "s" : ""} total
-      </div>
-    </svelte:fragment>
-  </ListHeader>
+  <ListHeader
+    title={config ? config.friendlyName : "Select an config"}
+    left={leftContent}
+    right={rightContent}
+    subtitleSnippet={subtitleContent}
+  />
 
   <ListContent>
     <LoadingState

@@ -1,17 +1,27 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   /**
    * ListHeader - A reusable header component for lists
-   * Provides consistent header styling with title and optional action slots
+   * Provides consistent header styling with title and optional action props
    */
   type Props = {
     class?: string;
     title?: string;
     subtitle?: string;
+    left?: Snippet;
+    titleSnippet?: Snippet;
+    right?: Snippet;
+    subtitleSnippet?: Snippet;
   };
   let {
     class: className = "",
     title = undefined,
     subtitle = undefined,
+    left = undefined,
+    titleSnippet = undefined,
+    right = undefined,
+    subtitleSnippet = undefined,
   }: Props = $props();
 
   const headerClass = $derived(
@@ -21,21 +31,25 @@
 
 <div class={headerClass}>
   <div class="header-row">
-    <slot name="left" />
+    {#if left}
+      {@render left()}
+    {/if}
     {#if title}
       <h2>{title}</h2>
-    {:else}
-      <slot name="title" />
+    {:else if titleSnippet}
+      {@render titleSnippet()}
     {/if}
-    <slot name="right" />
+    {#if right}
+      {@render right()}
+    {/if}
   </div>
   {#if subtitle}
     <div class="header-subtitle">
       <div class="subtitle-text">{subtitle}</div>
     </div>
-  {:else}
+  {:else if subtitleSnippet}
     <div class="header-subtitle">
-      <slot name="subtitle" />
+      {@render subtitleSnippet()}
     </div>
   {/if}
 </div>
