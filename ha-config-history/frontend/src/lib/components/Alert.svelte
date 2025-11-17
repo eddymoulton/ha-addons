@@ -1,9 +1,12 @@
 <script lang="ts">
+  import type { Snippet } from "svelte";
+
   type Props = {
     type?: "info" | "error" | "warning" | "success";
     message?: string | null;
     dismissable?: boolean;
     onDismiss?: (() => void) | null;
+    children?: Snippet;
   };
 
   let {
@@ -11,6 +14,7 @@
     message = "",
     dismissable = false,
     onDismiss = null,
+    children,
   }: Props = $props();
 
   const alertClass = $derived(`alert alert-${type}`);
@@ -19,7 +23,7 @@
 {#if message}
   <div class={alertClass}>
     <div class="alert-content">
-      <slot>{message}</slot>
+      {@render children?.()}
     </div>
     {#if dismissable && onDismiss}
       <button
