@@ -6,7 +6,7 @@
     value: string | number | undefined;
     changed?: boolean;
     min?: string;
-    class?: string;
+    style?: "search-input" | null;
   }
 
   let {
@@ -16,7 +16,7 @@
     value = $bindable(),
     changed = false,
     min,
-    class: className = "",
+    style = null,
     ...restProps
   }: FormInputProps = $props();
 </script>
@@ -27,8 +27,9 @@
   {placeholder}
   {min}
   bind:value
-  class="form-input {className}"
+  class="form-input"
   class:changed
+  class:search-input={style === "search-input"}
   {...restProps}
 />
 

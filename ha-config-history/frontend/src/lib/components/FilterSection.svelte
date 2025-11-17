@@ -1,12 +1,10 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
 
-  type Props = { class?: string; children: Snippet };
-  let { class: className = "", children }: Props = $props();
+  type Props = { children: Snippet };
+  let { children }: Props = $props();
 
-  const sectionClass = $derived(
-    ["filter-section", className].filter(Boolean).join(" ")
-  );
+  const sectionClass = $derived(["filter-section"].filter(Boolean).join(" "));
 </script>
 
 <div class={sectionClass}>

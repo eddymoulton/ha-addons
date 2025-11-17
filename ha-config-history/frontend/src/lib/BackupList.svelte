@@ -151,34 +151,34 @@
     {#if config && !loading && !error && backups.length > 0}
       <div class="backup-list">
         {#each backups as backup, index (backup.filename)}
+          {#snippet actions()}
+            <IconButton
+              icon="🗑️"
+              variant="ghost"
+              size="small"
+              class="btn-danger"
+              onclick={(e) => handleDeleteClick(backup, e)}
+              type="button"
+              title="Delete backup"
+              aria-label="Delete backup"
+            />
+          {/snippet}
+
           <ListItem
             selected={selectedBackup?.filename === backup.filename}
             variant={index === 0 ? "current" : "default"}
             hoverTransform="slide"
             onclick={() => handleBackupClick(backup)}
             onkeydown={(e) => e.key === "Enter" && handleBackupClick(backup)}
+            title={backup.date}
+            {actions}
           >
-            <div slot="title" class="backup-filename">
-              {backup.date}
-            </div>
-            <div slot="content" class="backup-date">
+            <div class="backup-date">
               {formatRelativeTime(backup.date)}
+              <div class="backup-size">{formatFileSize(backup.size)}</div>
               {#if index === 0}
                 <span class="current-badge">Current</span>
               {/if}
-            </div>
-            <div slot="actions" class="backup-actions">
-              <div class="backup-size">{formatFileSize(backup.size)}</div>
-              <IconButton
-                icon="🗑️"
-                variant="ghost"
-                size="small"
-                class="btn-danger"
-                onclick={(e) => handleDeleteClick(backup, e)}
-                type="button"
-                title="Delete backup"
-                aria-label="Delete backup"
-              />
             </div>
           </ListItem>
         {/each}
@@ -209,21 +209,11 @@
     gap: 0.5rem;
   }
 
-  .backup-filename {
-    color: var(--primary-text-color, #ffffff);
-    font-family: monospace;
-    font-size: 0.9rem;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-  }
-
   .current-badge {
     background: var(--success-color, #4caf50);
     color: white;
     padding: 0.15rem 0.4rem;
+    margin-left: 1rem;
     border-radius: 12px;
     font-size: 0.7rem;
     font-weight: 600;

@@ -143,7 +143,7 @@
           type="text"
           placeholder="Search configs..."
           bind:value={searchQuery}
-          class="search-input"
+          style="search-input"
         />
         <div class="filter-count">
           {filteredConfigs.length} config{filteredConfigs.length !== 1
@@ -161,16 +161,28 @@
       {:else}
         <div class="grid">
           {#each filteredConfigs as config (config.id)}
+            {#snippet actions()}
+              <IconButton
+                icon="🗑️"
+                variant="ghost"
+                size="small"
+                class="btn-danger"
+                onclick={(e) => handleDeleteClick(config, e)}
+                type="button"
+                title="Delete all backups"
+                aria-label="Delete all backups"
+              />
+            {/snippet}
+
             <ListItem
+              title={config.friendlyName}
               selected={selectedConfig?.id === config.id}
               hoverTransform="lift"
               onclick={() => onConfigClick(config)}
               onkeydown={handleEnterKey}
+              {actions}
             >
-              <div slot="title" class="automation-title">
-                {config.friendlyName}
-              </div>
-              <div slot="content" class="automation-stats">
+              <div class="automation-stats">
                 <div class="stat">
                   <span class="stat-label">Backups</span>
                   <span class="stat-value">{config.backupCount}</span>
@@ -181,18 +193,6 @@
                     >{formatFileSize(config.backupsSize)}</span
                   >
                 </div>
-              </div>
-              <div slot="actions">
-                <IconButton
-                  icon="🗑️"
-                  variant="ghost"
-                  size="small"
-                  class="btn-danger"
-                  onclick={(e) => handleDeleteClick(config, e)}
-                  type="button"
-                  title="Delete all backups"
-                  aria-label="Delete all backups"
-                />
               </div>
             </ListItem>
           {/each}
@@ -249,15 +249,6 @@
     gap: 0.75rem;
   }
 
-  .automation-title {
-    color: var(--primary-text-color, #ffffff);
-    font-size: 1rem;
-    font-weight: 500;
-    margin: 0;
-    line-height: 1.3;
-    flex: 1;
-  }
-
   .automation-stats {
     display: flex;
     gap: 2rem;
@@ -298,12 +289,6 @@
   }
 
   @media (max-width: 768px) {
-    .filter-section {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0.5rem;
-    }
-
     .filter-count {
       text-align: center;
     }
