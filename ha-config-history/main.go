@@ -15,7 +15,6 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	sloggin "github.com/samber/slog-gin"
 )
 
 var (
@@ -54,7 +53,6 @@ func main() {
 		c.Next()
 	})
 
-	r.Use(sloggin.New(logger))
 	r.Use(gin.Recovery())
 
 	fs, err := static.EmbedFolder(distFS, "dist")

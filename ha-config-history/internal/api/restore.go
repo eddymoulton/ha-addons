@@ -75,7 +75,7 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 
 		fullPath := filepath.Join(s.AppSettings.HomeAssistantConfigDir, configOptions.Path)
 
-		if configOptions.BackupType == "single" || configOptions.BackupType == "directory" {
+		if configOptions.BackupType == "single" {
 			if err := io.RestoreEntireFile(fullPath, backupContent); err != nil {
 				c.JSON(http.StatusInternalServerError, RestoreBackupResponse{
 					Success: false,
@@ -87,6 +87,17 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 
 		if configOptions.BackupType == "multiple" {
 			if err := io.RestorePartialFile(fullPath, backupContent, *configOptions); err != nil {
+				c.JSON(http.StatusInternalServerError, RestoreBackupResponse{
+					Success: false,
+					Error:   fmt.Sprintf("Failed to restore backup: %v", err),
+				})
+				return
+			}
+		}
+
+		if configOptions.BackupType == "directory" {
+			fullPath := filepath.Join(s.AppSettings.HomeAssistantConfigDir, configOptions.Path, id)
+			if err := io.RestoreEntireFile(fullPath, backupContent); err != nil {
 				c.JSON(http.StatusInternalServerError, RestoreBackupResponse{
 					Success: false,
 					Error:   fmt.Sprintf("Failed to restore backup: %v", err),
