@@ -159,7 +159,7 @@
       {#if filteredConfigs.length === 0}
         <LoadingState empty={true} emptyMessage="No configs in this group" />
       {:else}
-        <div class="grid">
+        <div class="list-grid">
           {#each filteredConfigs as config (config.id)}
             {#snippet actions()}
               <IconButton
@@ -243,7 +243,7 @@
     align-content: end;
   }
 
-  .grid {
+  .list-grid {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;

@@ -153,7 +153,7 @@
     />
 
     {#if config && !loading && !error && backups.length > 0}
-      <div class="backup-list">
+      <div class="list-grid">
         {#each backups as backup, index (backup.filename)}
           {#snippet actions()}
             <IconButton
@@ -207,10 +207,10 @@
 </ConfirmationModal>
 
 <style>
-  .backup-list {
+  .list-grid {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 
   .current-badge {
