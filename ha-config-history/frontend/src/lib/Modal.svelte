@@ -8,10 +8,17 @@
     onClose: () => void;
     children: Snippet;
     actions?: Snippet;
-    size?: 'small' | 'medium' | 'large';
+    size?: "small" | "medium" | "large";
   };
 
-  let { isOpen, title, onClose, children, actions, size = 'large' }: Props = $props();
+  let {
+    isOpen,
+    title,
+    onClose,
+    children,
+    actions,
+    size = "large",
+  }: Props = $props();
 
   function handleKeydown(event: KeyboardEvent) {
     if (event.key === "Escape") {
@@ -36,7 +43,12 @@
     aria-modal="true"
     aria-labelledby="modal-title"
   >
-    <div class="modal-content" class:small={size === 'small'} class:medium={size === 'medium'} class:large={size === 'large'}>
+    <div
+      class="modal-content"
+      class:small={size === "small"}
+      class:medium={size === "medium"}
+      class:large={size === "large"}
+    >
       <div class="modal-header">
         <h2 id="modal-title">{title}</h2>
         <IconButton

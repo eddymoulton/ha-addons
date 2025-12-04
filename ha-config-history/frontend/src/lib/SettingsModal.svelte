@@ -234,6 +234,335 @@
   }
 </script>
 
+{#snippet generalSettings()}
+  {#if settings}
+    <section class="settings-section">
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <div
+        class="section-heading"
+        onclick={() => toggleSection("general")}
+        role="button"
+        tabindex="0"
+      >
+        <span class="section-toggle"
+          >{openSection === "general" ? "▼" : "▶"}</span
+        >
+        General Settings
+      </div>
+
+      {#if openSection === "general"}
+        <div class="section-content">
+          <FormGroup
+            label="Home Assistant Config Directory"
+            for="ha-config-dir"
+          >
+            <FormInput
+              id="ha-config-dir"
+              type="text"
+              bind:value={settings.homeAssistantConfigDir}
+              placeholder="/config"
+              changed={hasChanged(
+                "homeAssistantConfigDir",
+                settings.homeAssistantConfigDir
+              )}
+            />
+          </FormGroup>
+
+          <FormGroup label="Backup Directory" for="backup-dir">
+            <FormInput
+              id="backup-dir"
+              type="text"
+              bind:value={settings.backupDir}
+              placeholder="./backups"
+              changed={hasChanged("backupDir", settings.backupDir)}
+            />
+          </FormGroup>
+
+          <FormGroup label="Server Port" for="port">
+            <FormInput
+              id="port"
+              type="text"
+              bind:value={settings.port}
+              placeholder=":40613"
+              changed={hasChanged("port", settings.port)}
+            />
+          </FormGroup>
+
+          <FormGroup
+            label="Cron Schedule"
+            for="cron-schedule"
+            helpText="(Leave empty to disable, e.g., &quot;0 2 * * *&quot; for daily at 2 AM)"
+          >
+            <FormInput
+              id="cron-schedule"
+              type="text"
+              bind:value={settings.cronSchedule}
+              placeholder="0 2 * * *"
+              changed={hasChanged("cronSchedule", settings.cronSchedule)}
+            />
+          </FormGroup>
+
+          <div class="form-row">
+            <FormGroup
+              label="Default Max Backups"
+              for="max-backups"
+              helpText="(Leave empty for unlimited)"
+            >
+              <FormInput
+                id="max-backups"
+                type="number"
+                bind:value={settings.defaultMaxBackups}
+                placeholder="unlimited"
+                min="1"
+              />
+            </FormGroup>
+
+            <FormGroup
+              label="Default Max Age (Days)"
+              for="max-age"
+              helpText="(Leave empty for unlimited)"
+            >
+              <FormInput
+                id="max-age"
+                type="number"
+                bind:value={settings.defaultMaxBackupAgeDays}
+                placeholder="unlimited"
+                min="1"
+              />
+            </FormGroup>
+          </div>
+
+          <div class="backup-action">
+            <Button
+              label={backingUp ? "Running Backup..." : "Backup Now"}
+              variant="success"
+              size="large"
+              type="button"
+              onclick={handleBackupNow}
+              disabled={backingUp}
+              loading={backingUp}
+              icon={backingUp ? undefined : "⚡"}
+            />
+            <span class="backup-help"
+              >Manually trigger a backup of all configured files</span
+            >
+          </div>
+        </div>
+      {/if}
+    </section>
+  {/if}
+{/snippet}
+
+{#snippet configItem(config: ConfigBackupOptions, index: number)}
+  {#if settings}
+    <div class="config-item">
+      <div class="config-header">
+        <div class="config-title">
+          <strong>{config.name || "(Unnamed)"}</strong>
+          <span class="config-type">{config.backupType}</span>
+        </div>
+        <div class="config-actions">
+          <IconButton
+            icon={editingConfigIndex === index ? "▼" : "▶"}
+            variant="outlined"
+            size="medium"
+            type="button"
+            onclick={() =>
+              (editingConfigIndex =
+                editingConfigIndex === index ? null : index)}
+            title="Edit"
+            aria-label="Edit"
+          />
+          <IconButton
+            icon="⧉"
+            variant="outlined"
+            size="medium"
+            type="button"
+            onclick={() => duplicateConfig(index)}
+            title="Duplicate"
+            aria-label="Duplicate"
+          />
+          <IconButton
+            icon="×"
+            variant="outlined"
+            size="medium"
+            class="btn-danger"
+            type="button"
+            onclick={() => removeConfig(index)}
+            title="Remove"
+            aria-label="Remove"
+          />
+        </div>
+      </div>
+
+      {#if editingConfigIndex === index}
+        <div class="config-details">
+          <FormGroup label="Name" for="config-name-{index}">
+            <FormInput
+              id="config-name-{index}"
+              type="text"
+              bind:value={config.name}
+              placeholder="Config name"
+            />
+          </FormGroup>
+
+          <FormGroup label="Path" for="config-path-{index}">
+            <FormInput
+              id="config-path-{index}"
+              type="text"
+              bind:value={config.path}
+              placeholder="relative/path/to/file_or_directory"
+            />
+          </FormGroup>
+
+          <FormGroup label="Backup Type" for="config-type-{index}">
+            <FormSelect id="config-type-{index}" bind:value={config.backupType}>
+              <option value="multiple">
+                Single YAML file with a list of items
+              </option>
+              <option value="single">Single file</option>
+              <option value="directory">Directory of files</option>
+            </FormSelect>
+          </FormGroup>
+
+          {#if config.backupType === "multiple"}
+            <div class="form-row">
+              <FormGroup label="ID Node" for="config-id-node-{index}">
+                <FormInput
+                  id="config-id-node-{index}"
+                  type="text"
+                  bind:value={config.idNode}
+                  placeholder="id"
+                />
+              </FormGroup>
+
+              <FormGroup
+                label="Friendly Name Node"
+                for="config-friendly-node-{index}"
+              >
+                <FormInput
+                  id="config-friendly-node-{index}"
+                  type="text"
+                  bind:value={config.friendlyNameNode}
+                  placeholder="alias"
+                />
+              </FormGroup>
+            </div>
+          {/if}
+
+          {#if config.backupType === "directory"}
+            <FormGroup
+              label="Include File Patterns"
+              for="config-include-patterns-{index}"
+              helpText="(Comma-separated glob patterns, e.g., *.yaml, *.json)"
+            >
+              <FormInput
+                id="config-include-patterns-{index}"
+                type="text"
+                value={config.includeFilePatterns?.join(", ") || ""}
+                oninput={(e) => {
+                  const value = e.currentTarget.value.trim();
+                  config.includeFilePatterns = value
+                    ? value.split(",").map((p) => p.trim())
+                    : [];
+                }}
+                placeholder="*.yaml, *.json"
+              />
+            </FormGroup>
+
+            <FormGroup
+              label="Exclude File Patterns"
+              for="config-exclude-patterns-{index}"
+              helpText="(Comma-separated glob patterns, e.g., *.backup)"
+            >
+              <FormInput
+                id="config-exclude-patterns-{index}"
+                type="text"
+                value={config.excludeFilePatterns?.join(", ") || ""}
+                oninput={(e) => {
+                  const value = e.currentTarget.value.trim();
+                  config.excludeFilePatterns = value
+                    ? value.split(",").map((p) => p.trim())
+                    : [];
+                }}
+                placeholder="*.backup, temp/*"
+              />
+            </FormGroup>
+          {/if}
+
+          <div class="form-row">
+            <FormGroup label="Max Backups" for="config-max-backups-{index}">
+              <FormInput
+                id="config-max-backups-{index}"
+                type="number"
+                bind:value={config.maxBackups}
+                placeholder="Default"
+                min="1"
+              />
+            </FormGroup>
+
+            <FormGroup label="Max Age (Days)" for="config-max-age-{index}">
+              <FormInput
+                id="config-max-age-{index}"
+                type="number"
+                bind:value={config.maxBackupAgeDays}
+                placeholder="Default"
+                min="1"
+              />
+            </FormGroup>
+          </div>
+        </div>
+      {/if}
+    </div>
+  {/if}
+{/snippet}
+
+{#snippet configBackupOptions()}
+  {#if settings}
+    <section class="settings-section">
+      <div class="section-header">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <div
+          class="section-heading"
+          onclick={() => toggleSection("configs")}
+          role="button"
+          tabindex="0"
+        >
+          <span class="section-toggle">
+            {openSection === "configs" ? "▼" : "▶"}
+          </span>
+          Config Backup Options
+        </div>
+        <Button
+          label="Add Config"
+          variant="primary"
+          size="small"
+          type="button"
+          onclick={addConfig}
+          icon="+"
+        ></Button>
+      </div>
+
+      {#if openSection === "configs"}
+        <div class="section-content">
+          {#if settings.configs.length === 0}
+            <div class="empty-state">
+              No config backup options defined. Click "Add Config" to create
+              one.
+            </div>
+          {:else}
+            <div class="config-list">
+              {#each settings.configs as config, index (index)}
+                {@render configItem(config, index)}
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {/if}
+    </section>
+  {/if}
+{/snippet}
+
 <Modal {isOpen} title="Settings" {onClose}>
   {#if loading}
     <div class="loading">Loading settings...</div>
@@ -262,339 +591,8 @@
         </Alert>
       {/if}
 
-      <section class="settings-section">
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <div
-          class="section-heading"
-          onclick={() => toggleSection("general")}
-          role="button"
-          tabindex="0"
-        >
-          <span class="section-toggle"
-            >{openSection === "general" ? "▼" : "▶"}</span
-          >
-          General Settings
-        </div>
-
-        {#if openSection === "general"}
-          <div class="section-content">
-            <FormGroup
-              label="Home Assistant Config Directory"
-              for="ha-config-dir"
-            >
-              <FormInput
-                id="ha-config-dir"
-                type="text"
-                bind:value={settings.homeAssistantConfigDir}
-                placeholder="/config"
-                changed={hasChanged(
-                  "homeAssistantConfigDir",
-                  settings.homeAssistantConfigDir
-                )}
-              />
-            </FormGroup>
-
-            <FormGroup label="Backup Directory" for="backup-dir">
-              <FormInput
-                id="backup-dir"
-                type="text"
-                bind:value={settings.backupDir}
-                placeholder="./backups"
-                changed={hasChanged("backupDir", settings.backupDir)}
-              />
-            </FormGroup>
-
-            <FormGroup label="Server Port" for="port">
-              <FormInput
-                id="port"
-                type="text"
-                bind:value={settings.port}
-                placeholder=":40613"
-                changed={hasChanged("port", settings.port)}
-              />
-            </FormGroup>
-
-            <FormGroup
-              label="Cron Schedule"
-              for="cron-schedule"
-              helpText="(Leave empty to disable, e.g., &quot;0 2 * * *&quot; for daily at 2 AM)"
-            >
-              <FormInput
-                id="cron-schedule"
-                type="text"
-                bind:value={settings.cronSchedule}
-                placeholder="0 2 * * *"
-                changed={hasChanged("cronSchedule", settings.cronSchedule)}
-              />
-            </FormGroup>
-
-            <div class="form-row">
-              <FormGroup
-                label="Default Max Backups"
-                for="max-backups"
-                helpText="(Leave empty for unlimited)"
-              >
-                <FormInput
-                  id="max-backups"
-                  type="number"
-                  bind:value={settings.defaultMaxBackups}
-                  placeholder="unlimited"
-                  min="1"
-                />
-              </FormGroup>
-
-              <FormGroup
-                label="Default Max Age (Days)"
-                for="max-age"
-                helpText="(Leave empty for unlimited)"
-              >
-                <FormInput
-                  id="max-age"
-                  type="number"
-                  bind:value={settings.defaultMaxBackupAgeDays}
-                  placeholder="unlimited"
-                  min="1"
-                />
-              </FormGroup>
-            </div>
-
-            <div class="backup-action">
-              <Button
-                label={backingUp ? "Running Backup..." : "Backup Now"}
-                variant="success"
-                size="large"
-                type="button"
-                onclick={handleBackupNow}
-                disabled={backingUp}
-                loading={backingUp}
-                icon={backingUp ? undefined : "⚡"}
-              />
-              <span class="backup-help"
-                >Manually trigger a backup of all configured files</span
-              >
-            </div>
-          </div>
-        {/if}
-      </section>
-
-      <section class="settings-section">
-        <div class="section-header">
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <div
-            class="section-heading"
-            onclick={() => toggleSection("configs")}
-            role="button"
-            tabindex="0"
-          >
-            <span class="section-toggle"
-              >{openSection === "configs" ? "▼" : "▶"}</span
-            >
-            Config Backup Options
-          </div>
-          <Button
-            label="Add Config"
-            variant="primary"
-            size="small"
-            type="button"
-            onclick={addConfig}
-            icon="+"
-          ></Button>
-        </div>
-
-        {#if openSection === "configs"}
-          <div class="section-content">
-            {#if settings.configs.length === 0}
-              <div class="empty-state">
-                No config backup options defined. Click "Add Config" to create
-                one.
-              </div>
-            {:else}
-              <div class="config-list">
-                {#each settings.configs as config, index (index)}
-                  <div class="config-item">
-                    <div class="config-header">
-                      <div class="config-title">
-                        <strong>{config.name || "(Unnamed)"}</strong>
-                        <span class="config-type">{config.backupType}</span>
-                      </div>
-                      <div class="config-actions">
-                        <IconButton
-                          icon={editingConfigIndex === index ? "▼" : "▶"}
-                          variant="outlined"
-                          size="medium"
-                          type="button"
-                          onclick={() =>
-                            (editingConfigIndex =
-                              editingConfigIndex === index ? null : index)}
-                          title="Edit"
-                          aria-label="Edit"
-                        />
-                        <IconButton
-                          icon="⧉"
-                          variant="outlined"
-                          size="medium"
-                          type="button"
-                          onclick={() => duplicateConfig(index)}
-                          title="Duplicate"
-                          aria-label="Duplicate"
-                        />
-                        <IconButton
-                          icon="×"
-                          variant="outlined"
-                          size="medium"
-                          class="btn-danger"
-                          type="button"
-                          onclick={() => removeConfig(index)}
-                          title="Remove"
-                          aria-label="Remove"
-                        />
-                      </div>
-                    </div>
-
-                    {#if editingConfigIndex === index}
-                      <div class="config-details">
-                        <FormGroup label="Name" for="config-name-{index}">
-                          <FormInput
-                            id="config-name-{index}"
-                            type="text"
-                            bind:value={config.name}
-                            placeholder="Config name"
-                          />
-                        </FormGroup>
-
-                        <FormGroup label="Path" for="config-path-{index}">
-                          <FormInput
-                            id="config-path-{index}"
-                            type="text"
-                            bind:value={config.path}
-                            placeholder="relative/path/to/file_or_directory"
-                          />
-                        </FormGroup>
-
-                        <FormGroup
-                          label="Backup Type"
-                          for="config-type-{index}"
-                        >
-                          <FormSelect
-                            id="config-type-{index}"
-                            bind:value={config.backupType}
-                          >
-                            <option value="multiple">
-                              Single YAML file with a list of items
-                            </option>
-                            <option value="single">Single file</option>
-                            <option value="directory">
-                              Directory of files
-                            </option>
-                          </FormSelect>
-                        </FormGroup>
-
-                        {#if config.backupType === "multiple"}
-                          <div class="form-row">
-                            <FormGroup
-                              label="ID Node"
-                              for="config-id-node-{index}"
-                            >
-                              <FormInput
-                                id="config-id-node-{index}"
-                                type="text"
-                                bind:value={config.idNode}
-                                placeholder="id"
-                              />
-                            </FormGroup>
-
-                            <FormGroup
-                              label="Friendly Name Node"
-                              for="config-friendly-node-{index}"
-                            >
-                              <FormInput
-                                id="config-friendly-node-{index}"
-                                type="text"
-                                bind:value={config.friendlyNameNode}
-                                placeholder="alias"
-                              />
-                            </FormGroup>
-                          </div>
-                        {/if}
-
-                        {#if config.backupType === "directory"}
-                          <FormGroup
-                            label="Include File Patterns"
-                            for="config-include-patterns-{index}"
-                            helpText="(Comma-separated glob patterns, e.g., *.yaml, *.json)"
-                          >
-                            <FormInput
-                              id="config-include-patterns-{index}"
-                              type="text"
-                              value={config.includeFilePatterns?.join(", ") ||
-                                ""}
-                              oninput={(e) => {
-                                const value = e.currentTarget.value.trim();
-                                config.includeFilePatterns = value
-                                  ? value.split(",").map((p) => p.trim())
-                                  : [];
-                              }}
-                              placeholder="*.yaml, *.json"
-                            />
-                          </FormGroup>
-
-                          <FormGroup
-                            label="Exclude File Patterns"
-                            for="config-exclude-patterns-{index}"
-                            helpText="(Comma-separated glob patterns, e.g., *.backup)"
-                          >
-                            <FormInput
-                              id="config-exclude-patterns-{index}"
-                              type="text"
-                              value={config.excludeFilePatterns?.join(", ") ||
-                                ""}
-                              oninput={(e) => {
-                                const value = e.currentTarget.value.trim();
-                                config.excludeFilePatterns = value
-                                  ? value.split(",").map((p) => p.trim())
-                                  : [];
-                              }}
-                              placeholder="*.backup, temp/*"
-                            />
-                          </FormGroup>
-                        {/if}
-
-                        <div class="form-row">
-                          <FormGroup
-                            label="Max Backups"
-                            for="config-max-backups-{index}"
-                          >
-                            <FormInput
-                              id="config-max-backups-{index}"
-                              type="number"
-                              bind:value={config.maxBackups}
-                              placeholder="Default"
-                              min="1"
-                            />
-                          </FormGroup>
-
-                          <FormGroup
-                            label="Max Age (Days)"
-                            for="config-max-age-{index}"
-                          >
-                            <FormInput
-                              id="config-max-age-{index}"
-                              type="number"
-                              bind:value={config.maxBackupAgeDays}
-                              placeholder="Default"
-                              min="1"
-                            />
-                          </FormGroup>
-                        </div>
-                      </div>
-                    {/if}
-                  </div>
-                {/each}
-              </div>
-            {/if}
-          </div>
-        {/if}
-      </section>
+      {@render generalSettings()}
+      {@render configBackupOptions()}
 
       <div class="modal-actions">
         <Button
