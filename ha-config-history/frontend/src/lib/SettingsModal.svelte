@@ -384,9 +384,8 @@
           />
           <IconButton
             icon="×"
-            variant="outlined"
+            variant="danger"
             size="medium"
-            class="btn-danger"
             type="button"
             onclick={() => removeConfig(index)}
             title="Remove"

@@ -166,7 +166,6 @@
                 icon="🗑️"
                 variant="ghost"
                 size="small"
-                class="btn-danger"
                 onclick={(e) => handleDeleteClick(config, e)}
                 type="button"
                 title="Delete all backups"

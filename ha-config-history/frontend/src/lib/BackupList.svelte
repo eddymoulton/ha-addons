@@ -160,7 +160,6 @@
               icon="🗑️"
               variant="ghost"
               size="small"
-              class="btn-danger"
               onclick={(e) => handleDeleteClick(backup, e)}
               type="button"
               title="Delete backup"
