@@ -43,8 +43,8 @@ Create a timeline of changes to yaml (or any text file) configuration in Home As
 docker run -d \
   --name ha-config-history \
   -p 40613:40613 \
-  -v /path/to/your/homeassistant/config:/config \
-  -v /path/to/backup/storage:/data \
+  -v /path/to/your/homeassistant/config:/homeassistant \
+  -v /path/to/backup/storage:/data/ha-config-history/backups \
   --restart unless-stopped \
   ghcr.io/eddymoulton/ha-config-history:latest
 ```
