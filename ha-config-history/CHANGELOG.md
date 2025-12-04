@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.2.1...ha-config-history-v1.2.2) (2025-12-04)
+
+
+### Bug Fixes
+
+* don't hide config column resizer on some screens ([a6896b8](https://github.com/eddymoulton/ha-addons/commit/a6896b87d7ba62b366a9f2735c53c120df698ff6))
+
 ## [1.2.1](https://github.com/eddymoulton/ha-config-history/compare/ha-config-history-v1.2.0...ha-config-history-v1.2.1) (2025-11-17)
 
 

@@ -1,5 +1,5 @@
 name: HA Config History
-version: 1.2.1
+version: 1.2.2
 slug: ha-config-history
 description: Git like change history without git
 url: https://github.com/eddymoulton/ha-config-history
