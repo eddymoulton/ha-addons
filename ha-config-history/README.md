@@ -2,14 +2,14 @@
 
 Git-like change history without git for Home Assistant
 
-Create a timeline of changes to yaml configuration in Home Assistant with a diff viewer restore capability.
+Create a timeline of changes to yaml (or any text file) configuration in Home Assistant with a diff viewer and restore capability.
 
 ## Features
 
-- Watches backed up files for changes, saving a new backup immediately
-- Restores old versions from within Home Assistant (via Addon)
-- Compares any two versions of a configuration file with a built in diff viewer
-- Configurable backup options to track the usual Home Assistant configuration, or add any files you want
+- Watch monitored files for changes, saving a new backup immediately on file change
+- Restore old versions from within Home Assistant (via Addon) 
+- Compare any two versions of a configuration file with the built in diff viewer
+- Configure backup options to track the usual Home Assistant configuration, or add any files you want
 
 ## Screenshots
 
@@ -101,7 +101,7 @@ The path should be directly to a YAML file.
 
 Tracks all files within a directory as single configurations.
 
-The path should be a directory path that contains one or more YAML files.
+The path should be a directory path that contains one or more files.
 
 
 ###### Additional Options
