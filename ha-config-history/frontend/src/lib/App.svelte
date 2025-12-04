@@ -309,7 +309,7 @@
     }
 
     .three-column-layout.has-backup :global(.resize-handle:first-of-type) {
-      display: none;
+      display: block;
     }
 
     .three-column-layout.has-backup :global(.resize-handle:last-of-type) {
