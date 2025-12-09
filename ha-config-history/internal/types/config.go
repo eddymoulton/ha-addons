@@ -71,8 +71,10 @@ func LoadConfig(configPath string) *AppSettings {
 			NewDirectoryConfigBackupOptions("ESP Home", "esphome", []string{"*.yaml"}, []string{}),
 			NewDirectoryConfigBackupOptions("Storage", ".storage", []string{
 				"lovelace.*",
+				"lovelace_dashboards",
 				"core.*",
 				"counter.*",
+				"frontend.*",
 				"input_boolean.*",
 				"input_number.*",
 				"input_select.*",
