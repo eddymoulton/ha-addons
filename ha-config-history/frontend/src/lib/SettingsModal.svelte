@@ -1,18 +1,12 @@
 <script lang="ts">
   import Modal from "./Modal.svelte";
-  import type {
-    AppSettings,
-    ConfigBackupOptions,
-    UpdateSettingsResponse,
-  } from "./types";
+  import type { AppSettings, UpdateSettingsResponse } from "./types";
   import { api } from "./api";
   import { getErrorMessage } from "./utils";
-  import IconButton from "./components/IconButton.svelte";
   import Button from "./components/Button.svelte";
-  import FormGroup from "./components/FormGroup.svelte";
-  import FormInput from "./components/FormInput.svelte";
   import Alert from "./components/Alert.svelte";
-  import FormSelect from "./components/FormSelect.svelte";
+  import GeneralSettings from "./components/GeneralSettings.svelte";
+  import GroupManagement from "./components/GroupManagement.svelte";
 
   type Props = {
     isOpen: boolean;
@@ -22,27 +16,21 @@
   let { isOpen, onClose }: Props = $props();
 
   let settings: AppSettings | null = $state(null);
-  let originalSettings: AppSettings | null = null;
+  let originalSettings: AppSettings | null = $state(null);
   let loading = $state(false);
   let saving = $state(false);
   let backingUp = $state(false);
   let backupSuccess = $state(false);
   let error: string | null = $state(null);
   let warnings: string[] = $state([]);
-  let editingConfigIndex: number | null = $state(null);
   let openSection: Sections = $state("general");
+  let editingGroupIndex: number | null = $state(null);
+  let newGroupName = $state("");
 
-  type Sections = "general" | "configs" | null;
+  export type Sections = "general" | "groups" | "configs" | null;
 
   function toggleSection(section: Sections) {
     openSection = openSection === section ? null : section;
-  }
-
-  function hasChanged(field: string, value: any): boolean {
-    if (!originalSettings || !settings) return false;
-    return (
-      JSON.stringify((originalSettings as any)[field]) !== JSON.stringify(value)
-    );
   }
 
   $effect(() => {
@@ -101,39 +89,68 @@
       errors.push("Default Max Age Days must be at least 1 or empty");
     }
 
-    // Validate configs
+    // Validate groups and configs
     const uniquePaths = new Set<string>();
-    settings.configs.forEach((config, index) => {
-      if (!config.name.trim()) {
-        errors.push(`Config #${index + 1}: Name is required`);
-      }
-      if (!config.path.trim()) {
-        errors.push(`Config #${index + 1}: Path is required`);
-      }
-      if (uniquePaths.has(config.path)) {
-        errors.push(`Config "${config.name}": Path must be unique`);
-      } else {
-        uniquePaths.add(config.path);
-      }
-      if (
-        config.maxBackups !== null &&
-        config.maxBackups !== undefined &&
-        config.maxBackups < 1
-      ) {
-        errors.push(
-          `Config "${config.name}": Max Backups must be at least 1 or empty`
-        );
-      }
-      if (
-        config.maxBackupAgeDays !== null &&
-        config.maxBackupAgeDays !== undefined &&
-        config.maxBackupAgeDays < 1
-      ) {
-        errors.push(
-          `Config "${config.name}": Max Age Days must be at least 1 or empty`
-        );
-      }
-    });
+    const uniqueGroupNames = new Set<string>();
+
+    if (!settings.configGroups || settings.configGroups.length === 0) {
+      errors.push("At least one config group is required");
+    } else {
+      settings.configGroups.forEach((group, groupIndex) => {
+        // Validate group names
+        if (!group.groupName.trim()) {
+          errors.push(`Group #${groupIndex + 1}: Name is required`);
+        }
+        if (uniqueGroupNames.has(group.groupName)) {
+          errors.push(`Group "${group.groupName}": Name must be unique`);
+        } else {
+          uniqueGroupNames.add(group.groupName);
+        }
+
+        // Validate configs within group
+        if (!group.configs || group.configs.length === 0) {
+          errors.push(
+            `Group "${group.groupName}": Must contain at least one config`
+          );
+        } else {
+          group.configs.forEach((config, configIndex) => {
+            const configId = `Group "${group.groupName}" Config #${configIndex + 1}`;
+
+            if (!config.name.trim()) {
+              errors.push(`${configId}: Name is required`);
+            }
+            if (!config.path.trim()) {
+              errors.push(`${configId}: Path is required`);
+            }
+            if (uniquePaths.has(config.path)) {
+              errors.push(
+                `Config "${config.name}": Path must be unique across all groups`
+              );
+            } else {
+              uniquePaths.add(config.path);
+            }
+            if (
+              config.maxBackups !== null &&
+              config.maxBackups !== undefined &&
+              config.maxBackups < 1
+            ) {
+              errors.push(
+                `${configId}: Max Backups must be at least 1 or empty`
+              );
+            }
+            if (
+              config.maxBackupAgeDays !== null &&
+              config.maxBackupAgeDays !== undefined &&
+              config.maxBackupAgeDays < 1
+            ) {
+              errors.push(
+                `${configId}: Max Age Days must be at least 1 or empty`
+              );
+            }
+          });
+        }
+      });
+    }
 
     return errors;
   }
@@ -173,47 +190,6 @@
     }
   }
 
-  function addConfig() {
-    if (!settings) return;
-    openSection = "configs";
-
-    const newConfig: ConfigBackupOptions = {
-      name: "",
-      path: "",
-      backupType: "multiple",
-      idNode: "id",
-      friendlyNameNode: "alias",
-    };
-    settings.configs = [...settings.configs, newConfig];
-    editingConfigIndex = settings.configs.length - 1;
-  }
-
-  function removeConfig(index: number) {
-    if (!settings) return;
-    const config = settings.configs[index];
-    if (
-      !confirm(
-        `Delete config "${config.name || "(Unnamed)"}"? This cannot be undone.`
-      )
-    ) {
-      return;
-    }
-    settings.configs = settings.configs.filter((_, i) => i !== index);
-    if (editingConfigIndex === index) {
-      editingConfigIndex = null;
-    }
-  }
-
-  function duplicateConfig(index: number) {
-    if (!settings) return;
-    const configToDuplicate = settings.configs[index];
-    const duplicated: ConfigBackupOptions = {
-      ...configToDuplicate,
-      name: `${configToDuplicate.name} (copy)`,
-    };
-    settings.configs = [...settings.configs, duplicated];
-  }
-
   async function handleBackupNow() {
     backingUp = true;
     backupSuccess = false;
@@ -233,317 +209,6 @@
     }
   }
 </script>
-
-{#snippet generalSettings()}
-  {#if settings}
-    <section class="settings-section">
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <div
-        class="section-heading"
-        onclick={() => toggleSection("general")}
-        role="button"
-        tabindex="0"
-      >
-        <span class="section-toggle"
-          >{openSection === "general" ? "▼" : "▶"}</span
-        >
-        General Settings
-      </div>
-
-      {#if openSection === "general"}
-        <div class="section-content">
-          <FormGroup
-            label="Home Assistant Config Directory"
-            for="ha-config-dir"
-          >
-            <FormInput
-              id="ha-config-dir"
-              type="text"
-              bind:value={settings.homeAssistantConfigDir}
-              placeholder="/config"
-              changed={hasChanged(
-                "homeAssistantConfigDir",
-                settings.homeAssistantConfigDir
-              )}
-            />
-          </FormGroup>
-
-          <FormGroup label="Backup Directory" for="backup-dir">
-            <FormInput
-              id="backup-dir"
-              type="text"
-              bind:value={settings.backupDir}
-              placeholder="./backups"
-              changed={hasChanged("backupDir", settings.backupDir)}
-            />
-          </FormGroup>
-
-          <FormGroup label="Server Port" for="port">
-            <FormInput
-              id="port"
-              type="text"
-              bind:value={settings.port}
-              placeholder=":40613"
-              changed={hasChanged("port", settings.port)}
-            />
-          </FormGroup>
-
-          <FormGroup
-            label="Cron Schedule"
-            for="cron-schedule"
-            helpText="(Leave empty to disable, e.g., &quot;0 2 * * *&quot; for daily at 2 AM)"
-          >
-            <FormInput
-              id="cron-schedule"
-              type="text"
-              bind:value={settings.cronSchedule}
-              placeholder="0 2 * * *"
-              changed={hasChanged("cronSchedule", settings.cronSchedule)}
-            />
-          </FormGroup>
-
-          <div class="form-row">
-            <FormGroup
-              label="Default Max Backups"
-              for="max-backups"
-              helpText="(Leave empty for unlimited)"
-            >
-              <FormInput
-                id="max-backups"
-                type="number"
-                bind:value={settings.defaultMaxBackups}
-                placeholder="unlimited"
-                min="1"
-              />
-            </FormGroup>
-
-            <FormGroup
-              label="Default Max Age (Days)"
-              for="max-age"
-              helpText="(Leave empty for unlimited)"
-            >
-              <FormInput
-                id="max-age"
-                type="number"
-                bind:value={settings.defaultMaxBackupAgeDays}
-                placeholder="unlimited"
-                min="1"
-              />
-            </FormGroup>
-          </div>
-        </div>
-      {/if}
-    </section>
-  {/if}
-{/snippet}
-
-{#snippet configItem(config: ConfigBackupOptions, index: number)}
-  {#if settings}
-    <div class="config-item">
-      <div class="config-header">
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <div
-          class="config-title"
-          onclick={() =>
-            (editingConfigIndex = editingConfigIndex === index ? null : index)}
-          role="button"
-          tabindex="0"
-        >
-          <span class="config-toggle">
-            {editingConfigIndex === index ? "▼" : "▶"}
-          </span>
-          <strong>{config.name || "(Unnamed)"}</strong>
-          <span class="config-type">{config.backupType}</span>
-        </div>
-        <div class="config-actions">
-          <IconButton
-            icon="⧉"
-            variant="outlined"
-            size="medium"
-            type="button"
-            onclick={() => duplicateConfig(index)}
-            title="Duplicate"
-            aria-label="Duplicate"
-          />
-          <IconButton
-            icon="×"
-            variant="danger"
-            size="medium"
-            type="button"
-            onclick={() => removeConfig(index)}
-            title="Remove"
-            aria-label="Remove"
-          />
-        </div>
-      </div>
-
-      {#if editingConfigIndex === index}
-        <div class="config-details">
-          <FormGroup label="Name" for="config-name-{index}">
-            <FormInput
-              id="config-name-{index}"
-              type="text"
-              bind:value={config.name}
-              placeholder="Config name"
-            />
-          </FormGroup>
-
-          <FormGroup label="Path" for="config-path-{index}">
-            <FormInput
-              id="config-path-{index}"
-              type="text"
-              bind:value={config.path}
-              placeholder="relative/path/to/file_or_directory"
-            />
-          </FormGroup>
-
-          <FormGroup label="Backup Type" for="config-type-{index}">
-            <FormSelect id="config-type-{index}" bind:value={config.backupType}>
-              <option value="multiple">
-                Single YAML file with a list of items
-              </option>
-              <option value="single">Single file</option>
-              <option value="directory">Directory of files</option>
-            </FormSelect>
-          </FormGroup>
-
-          {#if config.backupType === "multiple"}
-            <div class="form-row">
-              <FormGroup label="ID Node" for="config-id-node-{index}">
-                <FormInput
-                  id="config-id-node-{index}"
-                  type="text"
-                  bind:value={config.idNode}
-                  placeholder="id"
-                />
-              </FormGroup>
-
-              <FormGroup
-                label="Friendly Name Node"
-                for="config-friendly-node-{index}"
-              >
-                <FormInput
-                  id="config-friendly-node-{index}"
-                  type="text"
-                  bind:value={config.friendlyNameNode}
-                  placeholder="alias"
-                />
-              </FormGroup>
-            </div>
-          {/if}
-
-          {#if config.backupType === "directory"}
-            <FormGroup
-              label="Include File Patterns"
-              for="config-include-patterns-{index}"
-              helpText="(Comma-separated glob patterns, e.g., *.yaml, *.json)"
-            >
-              <FormInput
-                id="config-include-patterns-{index}"
-                type="text"
-                value={config.includeFilePatterns?.join(", ") || ""}
-                oninput={(e) => {
-                  const value = e.currentTarget.value.trim();
-                  config.includeFilePatterns = value
-                    ? value.split(",").map((p) => p.trim())
-                    : [];
-                }}
-                placeholder="*.yaml, *.json"
-              />
-            </FormGroup>
-
-            <FormGroup
-              label="Exclude File Patterns"
-              for="config-exclude-patterns-{index}"
-              helpText="(Comma-separated glob patterns, e.g., *.backup)"
-            >
-              <FormInput
-                id="config-exclude-patterns-{index}"
-                type="text"
-                value={config.excludeFilePatterns?.join(", ") || ""}
-                oninput={(e) => {
-                  const value = e.currentTarget.value.trim();
-                  config.excludeFilePatterns = value
-                    ? value.split(",").map((p) => p.trim())
-                    : [];
-                }}
-                placeholder="*.backup, temp/*"
-              />
-            </FormGroup>
-          {/if}
-
-          <div class="form-row">
-            <FormGroup label="Max Backups" for="config-max-backups-{index}">
-              <FormInput
-                id="config-max-backups-{index}"
-                type="number"
-                bind:value={config.maxBackups}
-                placeholder="Default"
-                min="1"
-              />
-            </FormGroup>
-
-            <FormGroup label="Max Age (Days)" for="config-max-age-{index}">
-              <FormInput
-                id="config-max-age-{index}"
-                type="number"
-                bind:value={config.maxBackupAgeDays}
-                placeholder="Default"
-                min="1"
-              />
-            </FormGroup>
-          </div>
-        </div>
-      {/if}
-    </div>
-  {/if}
-{/snippet}
-
-{#snippet configBackupOptions()}
-  {#if settings}
-    <section class="settings-section">
-      <div class="section-header">
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <div
-          class="section-heading"
-          onclick={() => toggleSection("configs")}
-          role="button"
-          tabindex="0"
-        >
-          <span class="section-toggle">
-            {openSection === "configs" ? "▼" : "▶"}
-          </span>
-          Config Backup Options
-        </div>
-        <Button
-          label="Add Config"
-          variant="primary"
-          size="small"
-          type="button"
-          onclick={addConfig}
-          icon="+"
-        ></Button>
-      </div>
-
-      {#if openSection === "configs"}
-        <div class="section-content">
-          {#if settings.configs.length === 0}
-            <div class="empty-state">
-              No config backup options defined. Click "Add Config" to create
-              one.
-            </div>
-          {:else}
-            <div class="config-list">
-              {#each settings.configs as config, index (index)}
-                {@render configItem(config, index)}
-              {/each}
-            </div>
-          {/if}
-        </div>
-      {/if}
-    </section>
-  {/if}
-{/snippet}
 
 <Modal {isOpen} title="Settings" {onClose}>
   {#if loading}
@@ -584,13 +249,28 @@
           loading={backingUp}
           icon={backingUp ? undefined : "⚡"}
         />
-        <span class="backup-help"
-          >Manually trigger a backup of all configured files</span
-        >
+        <span class="backup-help">
+          Manually trigger a backup of all configured files
+        </span>
       </div>
 
-      {@render generalSettings()}
-      {@render configBackupOptions()}
+      {#if settings}
+        <GeneralSettings
+          {settings}
+          {originalSettings}
+          {openSection}
+          onToggleSection={toggleSection}
+        />
+        <GroupManagement
+          {settings}
+          {openSection}
+          onToggleSection={toggleSection}
+          {editingGroupIndex}
+          {newGroupName}
+          onEditingGroupIndexChange={(index) => (editingGroupIndex = index)}
+          onNewGroupNameChange={(name) => (newGroupName = name)}
+        />
+      {/if}
 
       <div class="modal-actions">
         <Button
@@ -629,55 +309,6 @@
     color: var(--secondary-text-color);
   }
 
-  .settings-section .section-heading {
-    margin: 0 0 1rem 0;
-    color: var(--primary-text-color);
-    font-size: 1.1rem;
-    font-weight: 500;
-  }
-
-  .section-heading {
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0 !important;
-    transition: color 0.2s;
-  }
-
-  .section-heading:hover {
-    color: var(--primary-color);
-  }
-
-  .section-toggle {
-    font-size: 0.8rem;
-    display: inline-flex;
-    align-items: center;
-    transition: transform 0.2s;
-  }
-
-  .section-content {
-    margin-top: 1rem;
-  }
-
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-
-  .section-header {
-    margin: 0;
-  }
-
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
   .backup-action {
     display: flex;
     flex-direction: column;
@@ -690,91 +321,11 @@
     font-style: italic;
   }
 
-  .empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: var(--secondary-text-color);
-    font-style: italic;
-  }
-
-  .config-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .config-item {
-    background: var(--ha-card-background);
-    border: 1px solid var(--ha-card-border-color);
-    border-radius: 6px;
-    padding: 1rem;
-  }
-
-  .config-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .config-title {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: var(--primary-text-color);
-    cursor: pointer;
-    user-select: none;
-    flex: 1;
-    transition: color 0.2s;
-  }
-
-  .config-title:hover {
-    color: var(--primary-color);
-  }
-
-  .config-toggle {
-    font-size: 0.8rem;
-    display: inline-flex;
-    align-items: center;
-    transition: transform 0.2s;
-  }
-
-  .config-type {
-    background: var(--ha-card-border-color);
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    color: var(--secondary-text-color);
-    text-transform: uppercase;
-  }
-
-  .config-actions {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .config-details {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--ha-card-border-color);
-  }
-
   .modal-actions {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
     padding-top: 1rem;
     border-top: 1px solid var(--ha-card-border-color);
-  }
-
-  @media (max-width: 768px) {
-    .form-row {
-      grid-template-columns: 1fr;
-    }
-
-    .config-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 0.75rem;
-    }
   }
 </style>

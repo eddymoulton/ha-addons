@@ -4,6 +4,7 @@
     value: string;
     children?: any;
     style?: "group-select" | null;
+    onchange?: (event: Event) => void;
   }
 
   let {
@@ -11,6 +12,7 @@
     value = $bindable(),
     children,
     style = null,
+    onchange,
     ...restProps
   }: FormSelectProps = $props();
 </script>
@@ -18,6 +20,7 @@
 <select
   {id}
   bind:value
+  {onchange}
   class="form-select {style === 'group-select' ? 'group-select' : ''}"
   {...restProps}
 >

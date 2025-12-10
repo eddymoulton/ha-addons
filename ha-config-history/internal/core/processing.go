@@ -8,81 +8,89 @@ import (
 )
 
 func (s *Server) ProcessAllConfigOptions() {
-	for _, options := range s.AppSettings.Configs {
-		if options.BackupType == "multiple" {
-			current, err := io.ReadMultipleConfigsFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
-			if err != nil {
-				slog.Error("Error reading single file for multiple configs", "error", err)
-				continue
-			}
+	// Process configs from new grouped structure
+	for _, group := range s.AppSettings.ConfigGroups {
+		for _, options := range group.Configs {
+			s.processConfigOptions(options)
+		}
+	}
 
-			slog.Info("Processing backups for multiple configs",
-				"found_active_configs", len(current),
-				"known_backups", len(s.State.CachedConfigMetadata),
-			)
+}
 
-			for _, configBackup := range current {
-				s.queue <- BackupJob{
-					Options: options,
-					Backup:  configBackup,
-				}
-			}
-
-			for _, configBackup := range current {
-				err = s.watchDirectoryForFile(configBackup.FilePath, options)
-				if err != nil {
-					slog.Error("Error watching file for changes", "error", err)
-				}
-			}
+func (s *Server) processConfigOptions(options *types.ConfigBackupOptions) {
+	if options.BackupType == "multiple" {
+		current, err := io.ReadMultipleConfigsFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
+		if err != nil {
+			slog.Error("Error reading single file for multiple configs", "error", err)
+			return
 		}
 
-		if options.BackupType == "single" {
-			configBackup, err := io.ReadSingleConfigFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
-			if err != nil {
-				slog.Error("Error reading single config file", "error", err)
-				continue
-			}
+		slog.Info("Processing backups for multiple configs",
+			"found_active_configs", len(current),
+			"known_backups", len(s.State.CachedConfigMetadata),
+		)
 
-			slog.Info("Processing backup for single config",
-				"id", configBackup.ID,
-				"friendlyName", configBackup.FriendlyName,
-			)
-
+		for _, configBackup := range current {
 			s.queue <- BackupJob{
 				Options: options,
 				Backup:  configBackup,
 			}
+		}
 
+		for _, configBackup := range current {
 			err = s.watchDirectoryForFile(configBackup.FilePath, options)
 			if err != nil {
 				slog.Error("Error watching file for changes", "error", err)
 			}
 		}
+	}
 
-		if options.BackupType == "directory" {
-			current, err := io.ReadMultipleConfigsFromDirectory(s.AppSettings.HomeAssistantConfigDir, options)
+	if options.BackupType == "single" {
+		configBackup, err := io.ReadSingleConfigFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
+		if err != nil {
+			slog.Error("Error reading single config file", "error", err)
+			return
+		}
+
+		slog.Info("Processing backup for single config",
+			"id", configBackup.ID,
+			"friendlyName", configBackup.FriendlyName,
+		)
+
+		s.queue <- BackupJob{
+			Options: options,
+			Backup:  configBackup,
+		}
+
+		err = s.watchDirectoryForFile(configBackup.FilePath, options)
+		if err != nil {
+			slog.Error("Error watching file for changes", "error", err)
+		}
+	}
+
+	if options.BackupType == "directory" {
+		current, err := io.ReadMultipleConfigsFromDirectory(s.AppSettings.HomeAssistantConfigDir, options)
+		if err != nil {
+			slog.Error("Error reading configs from directory", "error", err)
+			return
+		}
+
+		slog.Info("Processing backups for directory configs",
+			"found_active_configs", len(current),
+			"known_backups", len(s.State.CachedConfigMetadata),
+		)
+
+		for _, configBackup := range current {
+			s.queue <- BackupJob{
+				Options: options,
+				Backup:  configBackup,
+			}
+		}
+
+		for _, configBackup := range current {
+			err = s.watchDirectoryForFile(configBackup.FilePath, options)
 			if err != nil {
-				slog.Error("Error reading configs from directory", "error", err)
-				continue
-			}
-
-			slog.Info("Processing backups for directory configs",
-				"found_active_configs", len(current),
-				"known_backups", len(s.State.CachedConfigMetadata),
-			)
-
-			for _, configBackup := range current {
-				s.queue <- BackupJob{
-					Options: options,
-					Backup:  configBackup,
-				}
-			}
-
-			for _, configBackup := range current {
-				err = s.watchDirectoryForFile(configBackup.FilePath, options)
-				if err != nil {
-					slog.Error("Error watching file for changes", "error", err)
-				}
+				slog.Error("Error watching file for changes", "error", err)
 			}
 		}
 	}
@@ -95,7 +103,7 @@ func (s *Server) startQueueProcessor() {
 			s.handleUpdateToFile(job.Options, job.Backup)
 			slog.Debug("Processed backup job",
 				"id", job.Backup.ID,
-				"group", job.Backup.Group,
+				"path", job.Backup.Path,
 				"duration", time.Since(start),
 			)
 		}

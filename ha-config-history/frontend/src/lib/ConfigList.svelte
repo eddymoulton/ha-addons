@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { ConfigMetadata } from "./types";
+  import type { ConfigMetadata, ConfigResponse } from "./types";
   import { api } from "./api";
   import { formatFileSize, getErrorMessage } from "./utils";
   import LoadingState from "./LoadingState.svelte";
@@ -21,35 +21,49 @@
 
   let { onConfigClick, selectedConfig }: ConfigListProps = $props();
 
-  let configs: ConfigMetadata[] = $state([]);
+  let groups: Record<string, ConfigMetadata[]> = $state({});
   let loading = $state(false);
   let error: string | null = $state(null);
-  let selectedGroup: string = $state("all");
+  let selectedGroupName: string = $state("none");
   let searchQuery: string = $state("");
   let configToDelete: ConfigMetadata | null = $state(null);
   let showDeleteConfirm = $state(false);
   let deleting = $state(false);
+  let listEmpty = $derived(
+    !loading && !error && Object.keys(groups).length === 0
+  );
 
-  let groups = $derived(
-    Array.from(new Set(configs.map((c) => c.group))).sort()
-  );
-  let filteredConfigs = $derived(
-    configs
-      .filter((c) => selectedGroup === "all" || c.group === selectedGroup)
-      .filter(
-        (c) =>
-          searchQuery === "" ||
-          c.friendlyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          c.id.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-  );
+  function configIsInFilter(config: ConfigMetadata) {
+    if (searchQuery === "") {
+      return true;
+    }
+    const query = searchQuery.toLowerCase();
+    return (
+      config.friendlyName.toLowerCase().includes(query) ||
+      config.id.toLowerCase().includes(query)
+    );
+  }
+
+  let filteredConfigs = $derived.by(() => {
+    if (!groups[selectedGroupName]) {
+      return [];
+    }
+    return groups[selectedGroupName].filter((config) =>
+      configIsInFilter(config)
+    );
+  });
 
   async function loadConfigs() {
     loading = true;
     error = null;
     try {
-      configs = await api.getConfigs();
-      selectedGroup = groups[0];
+      const configResponse = await api.getConfigs();
+      console.log("Loaded configs:", configResponse);
+      groups = configResponse.groups;
+      if (Object.keys(groups).length > 0) {
+        selectedGroupName = Object.keys(groups)[0];
+        console.log("Default selected group:", selectedGroupName);
+      }
     } catch (err) {
       error = getErrorMessage(err, "Failed to load configs");
     } finally {
@@ -77,7 +91,7 @@
 
     deleting = true;
     try {
-      await api.deleteAllBackups(configToDelete.group, configToDelete.id);
+      await api.deleteAllBackups(configToDelete.path, configToDelete.id);
 
       // If the deleted config was selected, clear selection
       if (selectedConfig?.id === configToDelete.id) {
@@ -109,20 +123,20 @@
     <LoadingState
       {loading}
       {error}
-      empty={!loading && !error && configs.length === 0}
-      emptyMessage="No configs found"
+      empty={listEmpty}
+      emptyMessage="No config groups found"
       loadingMessage="Loading configs..."
     />
 
-    {#if !loading && !error && configs.length > 0}
+    {#if !listEmpty}
       <div class="group-filter-row">
         <FormSelect
           id="group-filter"
-          bind:value={selectedGroup}
+          bind:value={selectedGroupName}
           style="group-select"
         >
           {#snippet children()}
-            {#each groups as group}
+            {#each Object.keys(groups) as group}
               <option value={group}>{group}</option>
             {/each}
           {/snippet}
@@ -155,7 +169,7 @@
   </FilterSection>
 
   <ListContent>
-    {#if !loading && !error && configs.length > 0}
+    {#if !listEmpty}
       {#if filteredConfigs.length === 0}
         <LoadingState empty={true} emptyMessage="No configs in this group" />
       {:else}
@@ -188,9 +202,9 @@
                 </div>
                 <div class="stat">
                   <span class="stat-label">Total Size</span>
-                  <span class="stat-value"
-                    >{formatFileSize(config.backupsSize)}</span
-                  >
+                  <span class="stat-value">
+                    {formatFileSize(config.backupsSize)}
+                  </span>
                 </div>
               </div>
             </ListItem>

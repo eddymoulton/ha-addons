@@ -12,6 +12,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type ConfigResponse struct {
+	Configs []*types.ConfigMetadata            `json:"configs"`
+	Groups  map[string][]*types.ConfigMetadata `json:"groups"`
+}
+
 func GetConfigsHandler(s *core.Server) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		s.State.Mu.RLock()
@@ -26,7 +31,33 @@ func GetConfigsHandler(s *core.Server) func(c *gin.Context) {
 			metadata = []*types.ConfigMetadata{}
 		}
 
-		c.IndentedJSON(http.StatusOK, metadata)
+		// Create groups mapping from ConfigBackupOptionGroups
+		groups := make(map[string][]*types.ConfigMetadata)
+
+		// Build lookup for config metadata by path
+		metadataByPath := make(map[string]*types.ConfigMetadata)
+		for _, meta := range metadata {
+			metadataByPath[meta.Path] = meta
+		}
+
+		// Group metadata by ConfigBackupOptionGroup
+		for _, configGroup := range s.AppSettings.ConfigGroups {
+			groupConfigs := make([]*types.ConfigMetadata, 0)
+			for _, config := range configGroup.Configs {
+				if meta, exists := metadataByPath[config.Path]; exists {
+					groupConfigs = append(groupConfigs, meta)
+				}
+			}
+			if len(groupConfigs) > 0 {
+				groups[configGroup.GroupName] = groupConfigs
+			}
+		}
+
+
+		c.IndentedJSON(http.StatusOK, ConfigResponse{
+			Configs: metadata,
+			Groups:  groups,
+		})
 	}
 }
 
@@ -41,10 +72,10 @@ func ProcessConfigsHandler(s *core.Server) func(c *gin.Context) {
 
 func ListConfigBackupsHandler(s *core.Server) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		group := c.Param("group")
+		path := c.Param("path")
 		id := c.Param("id")
 
-		backups, err := io.ListConfigBackups(s.AppSettings.BackupDir, group, id)
+		backups, err := io.ListConfigBackups(s.AppSettings.BackupDir, path, id)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
@@ -58,11 +89,11 @@ func ListConfigBackupsHandler(s *core.Server) func(c *gin.Context) {
 
 func GetConfigBackupHandler(s *core.Server) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		group := c.Param("group")
+		path := c.Param("path")
 		id := c.Param("id")
 		filename := c.Param("filename")
 
-		content, err := io.GetConfigBackup(s.AppSettings.BackupDir, group, id, filename)
+		content, err := io.GetConfigBackup(s.AppSettings.BackupDir, path, id, filename)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": err.Error(),
@@ -77,13 +108,13 @@ func GetConfigBackupHandler(s *core.Server) func(c *gin.Context) {
 
 func DeleteConfigBackupHandler(s *core.Server) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		group := c.Param("group")
+		path := c.Param("path")
 		id := c.Param("id")
 		filename := c.Param("filename")
 
-		if err := io.SanitizePath(group); err != nil {
+		if err := io.SanitizePath(path); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "invalid group parameter",
+				"error": "invalid path parameter",
 			})
 			return
 		}
@@ -100,7 +131,7 @@ func DeleteConfigBackupHandler(s *core.Server) func(c *gin.Context) {
 			return
 		}
 
-		err := io.DeleteBackup(s.AppSettings.BackupDir, group, id, filename)
+		err := io.DeleteBackup(s.AppSettings.BackupDir, path, id, filename)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -108,7 +139,7 @@ func DeleteConfigBackupHandler(s *core.Server) func(c *gin.Context) {
 			return
 		}
 
-		metadata, err := io.UpdateMetadataAfterDeletion(s.AppSettings.BackupDir, group, id)
+		metadata, err := io.UpdateMetadataAfterDeletion(s.AppSettings.BackupDir, path, id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -118,11 +149,11 @@ func DeleteConfigBackupHandler(s *core.Server) func(c *gin.Context) {
 
 		if metadata != nil {
 			s.State.Mu.Lock()
-			s.State.CachedConfigMetadata[types.ConfigIdentifier{Group: group, ID: id}] = metadata
+			s.State.CachedConfigMetadata[types.ConfigIdentifier{Path: path, ID: id}] = metadata
 			s.State.Mu.Unlock()
 		} else {
 			s.State.Mu.Lock()
-			delete(s.State.CachedConfigMetadata, types.ConfigIdentifier{Group: group, ID: id})
+			delete(s.State.CachedConfigMetadata, types.ConfigIdentifier{Path: path, ID: id})
 			s.State.Mu.Unlock()
 		}
 
@@ -134,12 +165,12 @@ func DeleteConfigBackupHandler(s *core.Server) func(c *gin.Context) {
 
 func DeleteAllConfigBackupsHandler(s *core.Server) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		group := c.Param("group")
+		path := c.Param("path")
 		id := c.Param("id")
 
-		if err := io.SanitizePath(group); err != nil {
+		if err := io.SanitizePath(path); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{
-				"error": "invalid group parameter",
+				"error": "invalid path parameter",
 			})
 			return
 		}
@@ -150,7 +181,7 @@ func DeleteAllConfigBackupsHandler(s *core.Server) func(c *gin.Context) {
 			return
 		}
 
-		err := io.DeleteAllBackups(s.AppSettings.BackupDir, group, id)
+		err := io.DeleteAllBackups(s.AppSettings.BackupDir, path, id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
@@ -159,7 +190,7 @@ func DeleteAllConfigBackupsHandler(s *core.Server) func(c *gin.Context) {
 		}
 
 		s.State.Mu.Lock()
-		delete(s.State.CachedConfigMetadata, types.ConfigIdentifier{Group: group, ID: id})
+		delete(s.State.CachedConfigMetadata, types.ConfigIdentifier{Path: path, ID: id})
 		s.State.Mu.Unlock()
 
 		c.JSON(http.StatusOK, gin.H{

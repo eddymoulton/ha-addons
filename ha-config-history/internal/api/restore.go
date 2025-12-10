@@ -21,15 +21,15 @@ type RestoreBackupResponse struct {
 
 func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		group := c.Param("group")
+		path := c.Param("path")
 		id := c.Param("id")
 		filename := c.Param("filename")
 
 		// Validate path parameters for directory traversal
-		if err := SanitizePath(group); err != nil {
+		if err := SanitizePath(path); err != nil {
 			c.JSON(http.StatusBadRequest, RestoreBackupResponse{
 				Success: false,
-				Error:   "Invalid group parameter",
+				Error:   "Invalid path parameter",
 			})
 			return
 		}
@@ -49,12 +49,19 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 		}
 
 		var configOptions *types.ConfigBackupOptions
-		for i := range s.AppSettings.Configs {
-			if s.AppSettings.Configs[i].Path == group {
-				configOptions = s.AppSettings.Configs[i]
+		// Search through all config groups to find the config with matching path
+		for _, group := range s.AppSettings.ConfigGroups {
+			for _, config := range group.Configs {
+				if config.Path == path {
+					configOptions = config
+					break
+				}
+			}
+			if configOptions != nil {
 				break
 			}
 		}
+
 
 		if configOptions == nil {
 			c.JSON(http.StatusNotFound, RestoreBackupResponse{
@@ -64,7 +71,7 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 			return
 		}
 
-		backupContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, group, id, filename)
+		backupContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, path, id, filename)
 		if err != nil {
 			c.JSON(http.StatusNotFound, RestoreBackupResponse{
 				Success: false,
@@ -106,7 +113,7 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 			}
 		}
 
-		slog.Info("Backup restored successfully", "group", group, "id", id, "filename", filename, "path", fullPath)
+		slog.Info("Backup restored successfully", "path", path, "id", id, "filename", filename, "fullPath", fullPath)
 
 		c.JSON(http.StatusOK, RestoreBackupResponse{
 			Success: true,

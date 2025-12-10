@@ -25,18 +25,18 @@ type BackupDiffResponse struct {
 
 func GetBackupDiffHandler(s *core.Server) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		group := c.Param("group")
+		path := c.Param("path")
 		id := c.Param("id")
 		leftFilename := c.Param("left")
 		rightFilename := c.Param("right")
 
-		leftContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, group, id, leftFilename)
+		leftContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, path, id, leftFilename)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Error loading left backup file"})
 			return
 		}
 
-		rightContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, group, id, rightFilename)
+		rightContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, path, id, rightFilename)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Error loading right backup file"})
 			return
