@@ -8,7 +8,6 @@ import (
 )
 
 func (s *Server) ProcessAllConfigOptions() {
-	// Process configs from new grouped structure
 	for _, group := range s.AppSettings.ConfigGroups {
 		for _, options := range group.Configs {
 			s.processConfigOptions(options)
@@ -31,17 +30,7 @@ func (s *Server) processConfigOptions(options *types.ConfigBackupOptions) {
 		)
 
 		for _, configBackup := range current {
-			s.queue <- BackupJob{
-				Options: options,
-				Backup:  configBackup,
-			}
-		}
-
-		for _, configBackup := range current {
-			err = s.watchDirectoryForFile(configBackup.FilePath, options)
-			if err != nil {
-				slog.Error("Error watching file for changes", "error", err)
-			}
+			s.queueAndWatch(options, configBackup)
 		}
 	}
 
@@ -57,15 +46,7 @@ func (s *Server) processConfigOptions(options *types.ConfigBackupOptions) {
 			"friendlyName", configBackup.FriendlyName,
 		)
 
-		s.queue <- BackupJob{
-			Options: options,
-			Backup:  configBackup,
-		}
-
-		err = s.watchDirectoryForFile(configBackup.FilePath, options)
-		if err != nil {
-			slog.Error("Error watching file for changes", "error", err)
-		}
+		s.queueAndWatch(options, configBackup)
 	}
 
 	if options.BackupType == "directory" {
@@ -81,18 +62,20 @@ func (s *Server) processConfigOptions(options *types.ConfigBackupOptions) {
 		)
 
 		for _, configBackup := range current {
-			s.queue <- BackupJob{
-				Options: options,
-				Backup:  configBackup,
-			}
+			s.queueAndWatch(options, configBackup)
 		}
+	}
+}
 
-		for _, configBackup := range current {
-			err = s.watchDirectoryForFile(configBackup.FilePath, options)
-			if err != nil {
-				slog.Error("Error watching file for changes", "error", err)
-			}
-		}
+func (s *Server) queueAndWatch(options *types.ConfigBackupOptions, configBackup *types.ConfigBackup) {
+	s.queue <- BackupJob{
+		Options: options,
+		Backup:  configBackup,
+	}
+
+	err := s.watchDirectoryForFile(configBackup.FilePath, options)
+	if err != nil {
+		slog.Error("Error watching file for changes", "error", err)
 	}
 }
 
