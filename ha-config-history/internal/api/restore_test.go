@@ -190,11 +190,16 @@ func TestRestoreBackupHandler(t *testing.T) {
 			HomeAssistantConfigDir: haConfigDir,
 			BackupDir:              backupDir,
 			Port:                   ":8080",
-			Configs: []*types.ConfigBackupOptions{
+			ConfigGroups: []*types.ConfigBackupOptionGroup{
 				{
-					Name:       "test-config",
-					Path:       "config.yaml", // This is the file path within HA config dir
-					BackupType: "single",
+					GroupName: "Test Configs",
+					Configs: []*types.ConfigBackupOptions{
+						{
+							Name:       "test-config",
+							Path:       "config.yaml", // This is the file path within HA config dir
+							BackupType: "single",
+						},
+					},
 				},
 			},
 		}
@@ -281,11 +286,16 @@ func TestRestoreBackupHandler(t *testing.T) {
 			HomeAssistantConfigDir: haConfigDir,
 			BackupDir:              backupDir,
 			Port:                   ":8080",
-			Configs: []*types.ConfigBackupOptions{
+			ConfigGroups: []*types.ConfigBackupOptionGroup{
 				{
-					Name:       "test-config",
-					Path:       "config.yaml", // This is the file path within HA config dir
-					BackupType: "single",
+					GroupName: "Test Configs",
+					Configs: []*types.ConfigBackupOptions{
+						{
+							Name:       "test-config",
+							Path:       "config.yaml", // This is the file path within HA config dir
+							BackupType: "single",
+						},
+					},
 				},
 			},
 		}
@@ -471,13 +481,18 @@ func TestRestoreBackupHandler(t *testing.T) {
 				HomeAssistantConfigDir: haConfigDir,
 				BackupDir:              backupDir,
 				Port:                   ":8080",
-				Configs: []*types.ConfigBackupOptions{
+				ConfigGroups: []*types.ConfigBackupOptionGroup{
 					{
-						Name:             "automations",
-						Path:             "automations.yaml",
-						BackupType:       "multiple",
-						IdNode:           &idNode,
-						FriendlyNameNode: &friendlyNameNode,
+						GroupName: "Test Automations",
+						Configs: []*types.ConfigBackupOptions{
+							{
+								Name:             "automations",
+								Path:             "automations.yaml",
+								BackupType:       "multiple",
+								IdNode:           &idNode,
+								FriendlyNameNode: &friendlyNameNode,
+							},
+						},
 					},
 				},
 			}
@@ -888,11 +903,16 @@ func TestRestoreBackupHandler(t *testing.T) {
 				HomeAssistantConfigDir: haConfigDir,
 				BackupDir:              backupDir,
 				Port:                   ":8080",
-				Configs: []*types.ConfigBackupOptions{
+				ConfigGroups: []*types.ConfigBackupOptionGroup{
 					{
-						Name:       "test-config",
-						Path:       "config.yaml",
-						BackupType: "single",
+						GroupName: "Test Configs",
+						Configs: []*types.ConfigBackupOptions{
+							{
+								Name:       "test-config",
+								Path:       "config.yaml",
+								BackupType: "single",
+							},
+						},
 					},
 				},
 			}
@@ -969,13 +989,18 @@ func TestRestoreBackupHandler(t *testing.T) {
 					HomeAssistantConfigDir: haConfigDir,
 					BackupDir:              backupDir,
 					Port:                   ":8080",
-					Configs: []*types.ConfigBackupOptions{
+					ConfigGroups: []*types.ConfigBackupOptionGroup{
 						{
-							Name:             "automations",
-							Path:             "automations.yaml",
-							BackupType:       "multiple",
-							IdNode:           &idNode,
-							FriendlyNameNode: &friendlyNameNode,
+							GroupName: "Test Automations",
+							Configs: []*types.ConfigBackupOptions{
+								{
+									Name:             "automations",
+									Path:             "automations.yaml",
+									BackupType:       "multiple",
+									IdNode:           &idNode,
+									FriendlyNameNode: &friendlyNameNode,
+								},
+							},
 						},
 					},
 				}
@@ -1144,14 +1169,19 @@ func TestSanitizePath(t *testing.T) {
 
 func setupTestServer() *core.Server {
 	config := &types.AppSettings{
-		HomeAssistantConfigDir: "/tmp/test-ha-config",
-		BackupDir:              "/tmp/test-backups",
+		HomeAssistantConfigDir: "tmp/test-ha-config",
+		BackupDir:              "tmp/test-backups",
 		Port:                   ":8080",
-		Configs: []*types.ConfigBackupOptions{
+		ConfigGroups: []*types.ConfigBackupOptionGroup{
 			{
-				Name:       "test-config",
-				Path:       "test.yaml",
-				BackupType: "single",
+				GroupName: "Test Configs",
+				Configs: []*types.ConfigBackupOptions{
+					{
+						Name:       "test-config",
+						Path:       "test.yaml",
+						BackupType: "single",
+					},
+				},
 			},
 		},
 	}
