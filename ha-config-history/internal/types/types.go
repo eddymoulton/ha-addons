@@ -7,23 +7,30 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type ConfigIdentifier struct {
-	ID   string `json:"id,omitempty"`
-	Path string `json:"path,omitempty"`
+// ConfigBackupIdentifier uniquely identifies a single configuration backup
+// ie. a single file that is backed up multiple times
+type ConfigBackupIdentifier struct {
+	ID   string `json:"id"`
+	Path string `json:"path"`
 }
 
-type ConfigMetadata struct {
-	ConfigIdentifier
+type BackupConfigSummaryMap map[ConfigBackupIdentifier]*BackupConfigSummary
+
+type BackupConfigSummary struct {
+	ConfigBackupIdentifier
 	FriendlyName string `json:"friendlyName"`
-	LastHash     string `json:"lastHash,omitempty"`
+	LastHash     string `json:"lastHash"`
 	BackupCount  int    `json:"backupCount"`
 	BackupsSize  int64  `json:"backupsSize"`
 	BackupType   string `json:"backupType"`
+
+	// TODO: V2 Remove
+	Group string `json:"group,omitempty"` // For backward compatibility
 }
 
-func NewConfigMetadata(configBackup *ConfigBackup, backupCount int, backupsSize int64, backupType string) *ConfigMetadata {
-	return &ConfigMetadata{
-		ConfigIdentifier: ConfigIdentifier{
+func NewConfigBackupSummary(configBackup *ConfigBackup, backupCount int, backupsSize int64, backupType string) *BackupConfigSummary {
+	return &BackupConfigSummary{
+		ConfigBackupIdentifier: ConfigBackupIdentifier{
 			ID:   configBackup.ID,
 			Path: configBackup.Path,
 		},
@@ -36,8 +43,8 @@ func NewConfigMetadata(configBackup *ConfigBackup, backupCount int, backupsSize 
 }
 
 type ConfigBackup struct {
-	ConfigIdentifier
-	FriendlyName string `json:"friendly_name,omitempty"`
+	ConfigBackupIdentifier
+	FriendlyName string `json:"friendlyName,omitempty"`
 	Hash         string `json:"hash,omitempty"`
 	ModifiedDate time.Time
 	BackupType   string `json:"backupType"` // "multiple", "single", "directory"
@@ -48,7 +55,7 @@ type ConfigBackup struct {
 func NewBlobConfigBackup(filename, filepath string, blob []byte, config *ConfigBackupOptions, modifiedDate time.Time) (*ConfigBackup, error) {
 	if config.BackupType == stateName[BackupTypeSingle] {
 		return &ConfigBackup{
-			ConfigIdentifier: ConfigIdentifier{
+			ConfigBackupIdentifier: ConfigBackupIdentifier{
 				ID:   config.Path,
 				Path: config.Path,
 			},
@@ -67,7 +74,7 @@ func NewBlobConfigBackup(filename, filepath string, blob []byte, config *ConfigB
 
 	if config.BackupType == stateName[BackupTypeDirectory] {
 		return &ConfigBackup{
-			ConfigIdentifier: ConfigIdentifier{
+			ConfigBackupIdentifier: ConfigBackupIdentifier{
 				ID:   filename,
 				Path: config.Path,
 			},
@@ -92,7 +99,7 @@ func NewYamlConfigBackup(filename, filepath string, yamlNode *yaml.Node, config 
 
 	if config.BackupType == stateName[BackupTypeMultiple] {
 		return &ConfigBackup{
-			ConfigIdentifier: ConfigIdentifier{
+			ConfigBackupIdentifier: ConfigBackupIdentifier{
 				ID:   GetYamlNodeValue(yamlNode, *config.IdNode),
 				Path: config.Path,
 			},

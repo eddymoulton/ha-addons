@@ -115,9 +115,6 @@
           group.configs.forEach((config, configIndex) => {
             const configId = `Group "${group.groupName}" Config #${configIndex + 1}`;
 
-            if (!config.name.trim()) {
-              errors.push(`${configId}: Name is required`);
-            }
             if (!config.path.trim()) {
               errors.push(`${configId}: Path is required`);
             }

@@ -9,7 +9,10 @@
       "type": "go",
       "request": "launch",
       "mode": "auto",
-      "program": "${workspaceFolder}/ha-config-history"
+      "program": "${workspaceFolder}/ha-config-history",
+      "env": {
+        "APPSETTINGS_PATH": "${workspaceFolder}/ha-config-history/tmp/appsettings.json"
+      }
     }
   ]
 }

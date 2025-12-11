@@ -14,6 +14,7 @@
   import Alert from "./components/Alert.svelte";
 
   type DiffViewerProps = {
+    selectedGroupName: string;
     config: ConfigMetadata | null;
     selectedBackup: BackupInfo | null;
     allBackups: BackupInfo[];
@@ -21,6 +22,7 @@
   };
 
   let {
+    selectedGroupName,
     config = null,
     selectedBackup = null,
     allBackups = [],
@@ -74,6 +76,7 @@
             // There's a previous backup
             const previousBackup = allBackups[currentIdx + 1];
             diffData = await api.compareBackups(
+              selectedGroupName,
               config.path,
               config.id,
               previousBackup.filename,
@@ -84,6 +87,7 @@
             diffData = {
               type: "content",
               content: await api.getBackupContent(
+                selectedGroupName,
                 config.path,
                 config.id,
                 selectedBackup.filename
@@ -99,6 +103,7 @@
             selectedBackup.filename !== currentBackup.filename
           ) {
             diffData = await api.compareBackups(
+              selectedGroupName,
               config.path,
               config.id,
               selectedBackup.filename,
@@ -108,6 +113,7 @@
             diffData = {
               type: "content",
               content: await api.getBackupContent(
+                selectedGroupName,
                 config.path,
                 config.id,
                 selectedBackup.filename
@@ -119,6 +125,7 @@
         case "two-backups":
           if (secondBackup) {
             diffData = await api.compareBackups(
+              selectedGroupName,
               config.path,
               config.id,
               secondBackup.filename,
@@ -200,6 +207,7 @@
 
     try {
       const response: RestoreBackupResponse = await api.restoreBackup(
+        selectedGroupName,
         config.path,
         config.id,
         selectedBackup.filename

@@ -8,7 +8,6 @@ import (
 	"log/slog"
 	"net/http"
 	"path/filepath"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,44 +20,23 @@ type RestoreBackupResponse struct {
 
 func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		path := c.Param("path")
+		groupSlug := types.GroupSlug(c.Param("group"))
+		configPath := c.Param("path")
 		id := c.Param("id")
 		filename := c.Param("filename")
 
-		// Validate path parameters for directory traversal
-		if err := SanitizePath(path); err != nil {
-			c.JSON(http.StatusBadRequest, RestoreBackupResponse{
-				Success: false,
-				Error:   "Invalid path parameter",
-			})
-			return
-		}
-		if err := SanitizePath(id); err != nil {
-			c.JSON(http.StatusBadRequest, RestoreBackupResponse{
-				Success: false,
-				Error:   "Invalid id parameter",
-			})
-			return
-		}
-		if err := SanitizePath(filename); err != nil {
-			c.JSON(http.StatusBadRequest, RestoreBackupResponse{
-				Success: false,
-				Error:   "Invalid filename parameter",
-			})
-			return
-		}
-
 		var configOptions *types.ConfigBackupOptions
 		// Search through all config groups to find the config with matching path
-		for _, group := range s.AppSettings.ConfigGroups {
-			for _, config := range group.Configs {
-				if config.Path == path {
+		for _, configGroup := range s.AppSettings.ConfigGroups {
+			if configGroup.Slug != groupSlug {
+				continue
+			}
+
+			for _, config := range configGroup.Configs {
+				if config.Path == configPath {
 					configOptions = config
 					break
 				}
-			}
-			if configOptions != nil {
-				break
 			}
 		}
 
@@ -70,7 +48,7 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 			return
 		}
 
-		backupContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, path, id, filename)
+		backupContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, groupSlug, configPath, id, filename)
 		if err != nil {
 			c.JSON(http.StatusNotFound, RestoreBackupResponse{
 				Success: false,
@@ -112,37 +90,11 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 			}
 		}
 
-		slog.Info("Backup restored successfully", "path", path, "id", id, "filename", filename, "fullPath", fullPath)
+		slog.Info("Backup restored successfully", "group", groupSlug, "path", configPath, "id", id, "filename", filename, "fullPath", fullPath)
 
 		c.JSON(http.StatusOK, RestoreBackupResponse{
 			Success: true,
 			Message: fmt.Sprintf("Successfully restored backup to %s", fullPath),
 		})
 	}
-}
-
-func SanitizePath(path string) error {
-	if path == "" {
-		return fmt.Errorf("invalid path: empty path")
-	}
-
-	if filepath.IsAbs(path) {
-		return fmt.Errorf("invalid path: absolute paths not allowed")
-	}
-
-	if strings.Contains(path, ":") || strings.HasPrefix(path, "\\\\") {
-		return fmt.Errorf("invalid path: absolute paths not allowed")
-	}
-
-	if strings.Contains(path, "..") {
-		return fmt.Errorf("invalid path: contains directory traversal")
-	}
-
-	cleaned := filepath.Clean(path)
-
-	if strings.HasPrefix(cleaned, "/") || strings.HasPrefix(cleaned, "\\") {
-		return fmt.Errorf("invalid path: absolute paths not allowed")
-	}
-
-	return nil
 }

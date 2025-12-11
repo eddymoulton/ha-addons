@@ -14,12 +14,29 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// SanitizePath validates that a path doesn't contain directory traversal attempts
 func SanitizePath(path string) error {
-	cleaned := filepath.Clean(path)
-	if strings.Contains(cleaned, "..") {
+	if path == "" {
+		return fmt.Errorf("invalid path: empty path")
+	}
+
+	if filepath.IsAbs(path) {
+		return fmt.Errorf("invalid path: absolute paths not allowed")
+	}
+
+	if strings.Contains(path, ":") || strings.HasPrefix(path, "\\\\") {
+		return fmt.Errorf("invalid path: absolute paths not allowed")
+	}
+
+	if strings.Contains(path, "..") {
 		return fmt.Errorf("invalid path: contains directory traversal")
 	}
+
+	cleaned := filepath.Clean(path)
+
+	if strings.HasPrefix(cleaned, "/") || strings.HasPrefix(cleaned, "\\") {
+		return fmt.Errorf("invalid path: absolute paths not allowed")
+	}
+
 	return nil
 }
 
@@ -151,67 +168,87 @@ func isFileExcluded(config *types.ConfigBackupOptions, file os.DirEntry) (bool, 
 	return excluded, nil
 }
 
-func LoadAllMetadata(backupFolder string) (map[types.ConfigIdentifier]*types.ConfigMetadata, error) {
+func LoadAllBackupConfigSummaries(backupFolder string) (map[types.GroupSlug]types.BackupConfigSummaryMap, error) {
 	// BackupsFolder structure:
 	//  - group1
-	//    - config1
-	//      - 20231010T120000.backup
-	//      - 20231011T120000.yaml
-	//      - metadata.json
-
-	metadataMap := map[types.ConfigIdentifier]*types.ConfigMetadata{}
+	//    - path1
+	//			- config1
+	//      	- 20231010T120000.backup
+	//      	- 20231011T120000.yaml
+	//      	- metadata.json
 
 	groups, err := os.ReadDir(backupFolder)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read backup folder %s: %w", backupFolder, err)
 	}
 
+	metadataMap := map[types.GroupSlug]types.BackupConfigSummaryMap{}
+
 	for _, group := range groups {
 		if group.IsDir() {
-			groupPath := filepath.Join(backupFolder, group.Name())
-			configs, err := os.ReadDir(groupPath)
+			groupSlug := types.GroupSlug(group.Name()) // folder name is slug
+			groupPath := filepath.Join(backupFolder, string(groupSlug))
+			paths, err := os.ReadDir(groupPath)
 			if err != nil {
 				return nil, fmt.Errorf("failed to read group folder %s: %w", groupPath, err)
 			}
 
-			for _, config := range configs {
-				if config.IsDir() {
-					metadataPath := filepath.Join(groupPath, config.Name(), "metadata.json")
-					metadataBlob, err := os.ReadFile(metadataPath)
+			metadataMapForGroup := types.BackupConfigSummaryMap{}
+
+			for _, path := range paths {
+				if path.IsDir() {
+					pathPath := filepath.Join(groupPath, path.Name())
+					configs, err := os.ReadDir(pathPath)
 					if err != nil {
-						return nil, fmt.Errorf("failed to read metadata file %s: %w", metadataPath, err)
+						return nil, fmt.Errorf("failed to read path folder %s: %w", pathPath, err)
 					}
 
-					var metadata types.ConfigMetadata
-					if err := json.Unmarshal(metadataBlob, &metadata); err != nil {
-						return nil, fmt.Errorf("failed to parse metadata JSON in %s: %w", metadataPath, err)
-					}
+					for _, config := range configs {
+						if config.IsDir() {
+							metadataPath := createMetadataPath(backupFolder, groupSlug, path.Name(), config.Name())
+							metadataBlob, err := os.ReadFile(metadataPath)
+							if err != nil {
+								slog.Warn("failed to read metadata file %s: %w", metadataPath, err)
+								continue
+							}
 
-					metadataMap[types.ConfigIdentifier{Path: group.Name(), ID: config.Name()}] = &metadata
+							var metadata types.BackupConfigSummary
+							if err := json.Unmarshal(metadataBlob, &metadata); err != nil {
+								return nil, fmt.Errorf("failed to parse metadata JSON in %s: %w", metadataPath, err)
+							}
+
+							if metadata.Path == "" {
+								metadata.Path = metadata.Group
+							}
+
+							metadataMapForGroup[types.ConfigBackupIdentifier{Path: path.Name(), ID: config.Name()}] = &metadata
+						}
+					}
 				}
 			}
+
+			metadataMap[groupSlug] = metadataMapForGroup
 		}
 	}
 
 	return metadataMap, nil
 }
 
-func GetBackupDirectory(backupFolder string, configBackup *types.ConfigBackup) (string, error) {
-	configBackupFolder := filepath.Join(backupFolder, configBackup.Path, configBackup.ID)
+func SaveConfigBackup(backupFolder string, groupSlug types.GroupSlug, configBackup *types.ConfigBackup) error {
+	backupDir, err := createConfigDirectory(backupFolder, groupSlug, configBackup.Path, configBackup.ID)
+	if err != nil {
+		return fmt.Errorf("failed to create config backup directory %s: %w", backupDir, err)
+	}
 
-	if _, err := os.Stat(configBackupFolder); os.IsNotExist(err) {
-		err := os.MkdirAll(configBackupFolder, 0755)
+	if _, err := os.Stat(backupDir); os.IsNotExist(err) {
+		err := os.MkdirAll(backupDir, 0755)
 		if err != nil {
-			return "", fmt.Errorf("failed to create config backup directory %s: %w", configBackupFolder, err)
+			return fmt.Errorf("failed to create config backup directory %s: %w", backupDir, err)
 		}
 	}
 
-	return configBackupFolder, nil
-}
-
-func SaveConfigBackup(configBackup *types.ConfigBackup, backupDirectory string) error {
-	backupPath := filepath.Join(backupDirectory, fmt.Sprintf("%s.backup", configBackup.ModifiedDate.Format("20060102T150405")))
-	err := os.WriteFile(backupPath, configBackup.Blob, 0644)
+	backupPath := filepath.Join(backupDir, fmt.Sprintf("%s.backup", configBackup.ModifiedDate.Format("20060102T150405")))
+	err = os.WriteFile(backupPath, configBackup.Blob, 0644)
 
 	if err != nil {
 		return fmt.Errorf("failed to save config backup: %w", err)
@@ -225,8 +262,20 @@ func SaveConfigBackup(configBackup *types.ConfigBackup, backupDirectory string) 
 	return nil
 }
 
-func CleanupAndUpdateMetadata(configBackup *types.ConfigBackup, backupOptions *types.ConfigBackupOptions, backupDirectory string, defaultMaxBackups *int, defaultMaxBackupAgeDays *int) (*types.ConfigMetadata, error) {
-	backupsCount, backupsSize, err := dirMetrics(backupDirectory)
+func CleanupAndUpdateMetadata(
+	groupSlug types.GroupSlug,
+	configBackup *types.ConfigBackup,
+	backupOptions *types.ConfigBackupOptions,
+	backupDirectory string,
+	defaultMaxBackups *int,
+	defaultMaxBackupAgeDays *int,
+) (*types.BackupConfigSummary, error) {
+	configDir, err := createConfigDirectory(backupDirectory, (groupSlug), configBackup.Path, configBackup.ID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	backupsCount, backupsSize, err := dirMetrics(configDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get directory metrics for %s: %w", backupDirectory, err)
 	}
@@ -283,8 +332,8 @@ func CleanupAndUpdateMetadata(configBackup *types.ConfigBackup, backupOptions *t
 		}
 	}
 
-	metadataPath := filepath.Join(backupDirectory, "metadata.json")
-	metadata := types.NewConfigMetadata(configBackup, backupsCount, backupsSize, backupOptions.BackupType)
+	metadataPath := createMetadataPath(backupDirectory, groupSlug, configBackup.Path, "??")
+	metadata := types.NewConfigBackupSummary(configBackup, backupsCount, backupsSize, backupOptions.BackupType)
 	metadataBlob, err := json.Marshal(metadata)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal metadata: %w", err)
@@ -319,19 +368,11 @@ func dirMetrics(path string) (int, int64, error) {
 	return count, size, err
 }
 
-func GetConfigBackup(backupFolder, group, id, filename string) ([]byte, error) {
-	// Validate path components for directory traversal
-	if err := SanitizePath(group); err != nil {
-		return nil, fmt.Errorf("invalid group parameter: %w", err)
+func GetConfigBackup(backupFolder string, groupSlug types.GroupSlug, configPath, id, filename string) ([]byte, error) {
+	backupPath, err := createBackupPath(backupFolder, groupSlug, configPath, id, filename)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create backup path: %w", err)
 	}
-	if err := SanitizePath(id); err != nil {
-		return nil, fmt.Errorf("invalid id parameter: %w", err)
-	}
-	if err := SanitizePath(filename); err != nil {
-		return nil, fmt.Errorf("invalid filename parameter: %w", err)
-	}
-
-	backupPath := filepath.Join(backupFolder, group, id, filename)
 
 	if _, err := os.Stat(backupPath); os.IsNotExist(err) {
 		return nil, fmt.Errorf("backup file not found: %s", filename)
@@ -351,16 +392,11 @@ type BackupInfo struct {
 	Size     int64     `json:"size"`
 }
 
-func ListConfigBackups(backupFolder, group, configID string) ([]BackupInfo, error) {
-	// Validate path components for directory traversal
-	if err := SanitizePath(group); err != nil {
-		return nil, fmt.Errorf("invalid group parameter: %w", err)
+func ListConfigBackups(backupFolder string, groupSlug types.GroupSlug, configPath, configID string) ([]BackupInfo, error) {
+	configFolder, err := createConfigDirectory(backupFolder, groupSlug, configPath, configID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create config directory: %w", err)
 	}
-	if err := SanitizePath(configID); err != nil {
-		return nil, fmt.Errorf("invalid configID parameter: %w", err)
-	}
-
-	configFolder := filepath.Join(backupFolder, group, configID)
 
 	if _, err := os.Stat(configFolder); os.IsNotExist(err) {
 		return nil, fmt.Errorf("config not found: %s", configID)
@@ -443,13 +479,19 @@ func RestorePartialFile(filepath string, blobToRestore []byte, options types.Con
 		return fmt.Errorf("expected a YAML sequence at root")
 	}
 
+	updated := false
 	contentNode := rootNode.Content[0]
 	for _, yamlNode := range contentNode.Content {
 		existingNodeId := types.GetYamlNodeValue(yamlNode, *options.IdNode)
 		if existingNodeId == nodeIdToRestore {
 			*yamlNode = *dataToRestore.Content[0]
+			updated = true
 			break
 		}
+	}
+
+	if !updated {
+		contentNode.Content = append(contentNode.Content, dataToRestore.Content[0])
 	}
 
 	updatedBlob, err := yaml.Marshal(rootNode.Content[0])
@@ -465,19 +507,11 @@ func RestorePartialFile(filepath string, blobToRestore []byte, options types.Con
 }
 
 // DeleteBackup deletes a single backup file and returns an error if it fails
-func DeleteBackup(backupFolder, group, id, filename string) error {
-	// Validate path components for directory traversal
-	if err := SanitizePath(group); err != nil {
-		return fmt.Errorf("invalid group parameter: %w", err)
+func DeleteBackup(backupFolder string, groupSlug types.GroupSlug, configPath, id, filename string) error {
+	backupPath, err := createBackupPath(backupFolder, groupSlug, configPath, id, filename)
+	if err != nil {
+		return fmt.Errorf("failed to create backup path: %w", err)
 	}
-	if err := SanitizePath(id); err != nil {
-		return fmt.Errorf("invalid id parameter: %w", err)
-	}
-	if err := SanitizePath(filename); err != nil {
-		return fmt.Errorf("invalid filename parameter: %w", err)
-	}
-
-	backupPath := filepath.Join(backupFolder, group, id, filename)
 
 	// Check if file exists
 	if _, err := os.Stat(backupPath); os.IsNotExist(err) {
@@ -495,8 +529,11 @@ func DeleteBackup(backupFolder, group, id, filename string) error {
 
 // UpdateMetadataAfterDeletion updates the metadata.json after a backup is deleted
 // Returns nil metadata if no backups remain
-func UpdateMetadataAfterDeletion(backupFolder, group, id string) (*types.ConfigMetadata, error) {
-	backupDirectory := filepath.Join(backupFolder, group, id)
+func UpdateMetadataAfterDeletion(backupFolder string, groupSlug types.GroupSlug, configPath, id string) (*types.BackupConfigSummary, error) {
+	backupDirectory, err := createConfigDirectory(backupFolder, groupSlug, configPath, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create backup directory: %w", err)
+	}
 
 	// Get updated metrics
 	backupsCount, backupsSize, err := dirMetrics(backupDirectory)
@@ -506,7 +543,7 @@ func UpdateMetadataAfterDeletion(backupFolder, group, id string) (*types.ConfigM
 
 	// If no backups remain, delete metadata file and directory
 	if backupsCount == 0 {
-		metadataPath := filepath.Join(backupDirectory, "metadata.json")
+		metadataPath := createMetadataPath(backupDirectory, groupSlug, configPath, "??")
 		if err := os.Remove(metadataPath); err != nil && !os.IsNotExist(err) {
 			slog.Warn("Failed to remove metadata file", "path", metadataPath, "error", err)
 		}
@@ -520,13 +557,13 @@ func UpdateMetadataAfterDeletion(backupFolder, group, id string) (*types.ConfigM
 	}
 
 	// Read existing metadata to preserve other fields
-	metadataPath := filepath.Join(backupDirectory, "metadata.json")
+	metadataPath := createMetadataPath(backupDirectory, groupSlug, configPath, "??")
 	metadataBlob, err := os.ReadFile(metadataPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read metadata file %s: %w", metadataPath, err)
 	}
 
-	var metadata types.ConfigMetadata
+	var metadata types.BackupConfigSummary
 	if err := json.Unmarshal(metadataBlob, &metadata); err != nil {
 		return nil, fmt.Errorf("failed to parse metadata JSON in %s: %w", metadataPath, err)
 	}
@@ -549,16 +586,12 @@ func UpdateMetadataAfterDeletion(backupFolder, group, id string) (*types.ConfigM
 }
 
 // DeleteAllBackups deletes all backups for a config (removes entire directory)
-func DeleteAllBackups(backupFolder, group, id string) error {
-	// Validate path components for directory traversal
-	if err := SanitizePath(group); err != nil {
-		return fmt.Errorf("invalid group parameter: %w", err)
-	}
-	if err := SanitizePath(id); err != nil {
-		return fmt.Errorf("invalid id parameter: %w", err)
-	}
+func DeleteAllBackups(backupFolder string, groupSlug types.GroupSlug, configPath string, id string) error {
 
-	configFolder := filepath.Join(backupFolder, group, id)
+	configFolder, err := createConfigDirectory(backupFolder, groupSlug, configPath, id)
+	if err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
 
 	// Check if directory exists
 	if _, err := os.Stat(configFolder); os.IsNotExist(err) {
@@ -570,6 +603,43 @@ func DeleteAllBackups(backupFolder, group, id string) error {
 		return fmt.Errorf("failed to delete config directory: %w", err)
 	}
 
-	slog.Info("All backups deleted", "group", group, "id", id)
+	slog.Info("All backups deleted", "group", groupSlug, "id", id)
 	return nil
+}
+
+func createConfigDirectory(backupFolder string, groupSlug types.GroupSlug, configPath string, id string) (string, error) {
+	if err := SanitizePath(string(groupSlug)); err != nil {
+		return "", fmt.Errorf("invalid group parameter: %w", err)
+	}
+	if err := SanitizePath(configPath); err != nil {
+		return "", fmt.Errorf("invalid config path parameter: %w", err)
+	}
+	if err := SanitizePath(configPath); err != nil {
+		return "", fmt.Errorf("invalid config path parameter: %w", err)
+	}
+	if err := SanitizePath(id); err != nil {
+		return "", fmt.Errorf("invalid id parameter: %w", err)
+	}
+
+	configDirectory := filepath.Join(backupFolder, string(groupSlug), configPath, id)
+
+	return configDirectory, nil
+}
+
+func createBackupPath(backupFolder string, groupSlug types.GroupSlug, configPath string, id string, filename string) (string, error) {
+	configDirectory, err := createConfigDirectory(backupFolder, groupSlug, configPath, id)
+	if err != nil {
+		return "", fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	if err := SanitizePath(filename); err != nil {
+		return "", fmt.Errorf("invalid backup path: %w", err)
+	}
+
+	backupPath := filepath.Join(configDirectory, filename)
+	return backupPath, nil
+}
+
+func createMetadataPath(backupDir string, group types.GroupSlug, configPath, config string) string {
+	return filepath.Join(backupDir, string(group), configPath, config, "metadata.json")
 }

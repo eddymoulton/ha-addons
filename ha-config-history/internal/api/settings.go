@@ -74,23 +74,23 @@ func validateConfigGroups(configGroups []*types.ConfigBackupOptionGroup) error {
 			return fmt.Errorf("config group at index %d is nil", i)
 		}
 
-		if err := validateGroupName(group.GroupName); err != nil {
+		if err := validateGroupName(group.Name); err != nil {
 			return fmt.Errorf("group at index %d: %v", i, err)
 		}
 
 		// Check for duplicate group names
-		if groupNames[group.GroupName] {
-			return fmt.Errorf("duplicate group name: '%s'", group.GroupName)
+		if groupNames[group.Name] {
+			return fmt.Errorf("duplicate group name: '%s'", group.Name)
 		}
-		groupNames[group.GroupName] = true
+		groupNames[group.Name] = true
 
 		// Validate configs within group
 		if len(group.Configs) == 0 {
-			return fmt.Errorf("group '%s' must contain at least one config", group.GroupName)
+			return fmt.Errorf("group '%s' must contain at least one config", group.Name)
 		}
 
 		for j, config := range group.Configs {
-			if err := validateConfig(config, j, group.GroupName, configPaths); err != nil {
+			if err := validateConfig(config, j, group.Name, configPaths); err != nil {
 				return err
 			}
 		}
@@ -106,37 +106,32 @@ func validateConfig(config *types.ConfigBackupOptions, configIndex int, groupNam
 
 	// Validate config path
 	if err := validateConfigPath(config.Path); err != nil {
-		return fmt.Errorf("config '%s' in group '%s': %v", config.Name, groupName, err)
+		return fmt.Errorf("config '%s' in group '%s': %v", config.Path, groupName, err)
 	}
 
 	// Validate backup type
 	if config.BackupType != "single" && config.BackupType != "multiple" && config.BackupType != "directory" {
 		return fmt.Errorf("config '%s' in group '%s' has invalid backup type: '%s'",
-			config.Name, groupName, config.BackupType)
-	}
-
-	// Validate name
-	if strings.TrimSpace(config.Name) == "" {
-		return fmt.Errorf("config name cannot be empty in group '%s'", groupName)
+			config.Path, groupName, config.BackupType)
 	}
 
 	// Validate multiple backup type fields
 	if config.BackupType == "multiple" {
 		if config.IdNode == nil || strings.TrimSpace(*config.IdNode) == "" {
-			return fmt.Errorf("config '%s' with backup type 'multiple' must have a valid idNode", config.Name)
+			return fmt.Errorf("config '%s' with backup type 'multiple' must have a valid idNode", config.Path)
 		}
 		if config.FriendlyNameNode == nil || strings.TrimSpace(*config.FriendlyNameNode) == "" {
-			return fmt.Errorf("config '%s' with backup type 'multiple' must have a valid friendlyNameNode", config.Name)
+			return fmt.Errorf("config '%s' with backup type 'multiple' must have a valid friendlyNameNode", config.Path)
 		}
 	}
 
 	// Validate max backups and age constraints
 	if config.MaxBackups != nil && *config.MaxBackups < 1 {
-		return fmt.Errorf("config '%s' maxBackups must be at least 1", config.Name)
+		return fmt.Errorf("config '%s' maxBackups must be at least 1", config.Path)
 	}
 
 	if config.MaxBackupAgeDays != nil && *config.MaxBackupAgeDays < 1 {
-		return fmt.Errorf("config '%s' maxBackupAgeDays must be at least 1", config.Name)
+		return fmt.Errorf("config '%s' maxBackupAgeDays must be at least 1", config.Path)
 	}
 
 	return nil

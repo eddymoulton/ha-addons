@@ -7,6 +7,7 @@
   import Button from "./components/Button.svelte";
   import type { ConfigMetadata, BackupInfo } from "./types";
 
+  let selectedGroupName: string = $state("none");
   let selectedConfig: ConfigMetadata | null = $state(null);
   let selectedBackup: BackupInfo | null = $state(null);
   let allBackups: BackupInfo[] = $state([]);
@@ -21,6 +22,7 @@
   let backupColumnWidth = $state(DEFAULT_BACKUP_WIDTH);
 
   async function handleConfigClick(config: ConfigMetadata) {
+    console.log("Config clicked:", config);
     selectedConfig = config;
     selectedBackup = null;
     allBackups = [];
@@ -96,13 +98,19 @@
     style="--config-width: {configColumnWidth}px; --backup-width: {backupColumnWidth}px;"
   >
     <div class="column column-configs">
-      <ConfigList onConfigClick={handleConfigClick} {selectedConfig} />
+      <ConfigList
+        onConfigClick={handleConfigClick}
+        {selectedConfig}
+        {selectedGroupName}
+        onGroupChange={(name) => (selectedGroupName = name)}
+      />
     </div>
 
     <ResizeHandle on:resize={handleConfigResize} />
 
     <div class="column column-backups">
       <BackupList
+        {selectedGroupName}
         config={selectedConfig}
         onBackupClick={handleBackupClick}
         {selectedBackup}
@@ -114,6 +122,7 @@
 
     <div class="column column-diff">
       <DiffViewer
+        {selectedGroupName}
         config={selectedConfig}
         {selectedBackup}
         {allBackups}

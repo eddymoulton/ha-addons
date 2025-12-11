@@ -38,14 +38,18 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	configPath := os.Getenv("CONFIG_PATH")
-	if configPath == "" {
-		configPath = "/data/config.json"
+	appSettingsPath := os.Getenv("APPSETTINGS_PATH")
+	if appSettingsPath == "" {
+		appSettingsPath = "/data/appsettings.json"
 	}
 
-	config := types.LoadConfig(configPath)
+	appSettings := types.LoadAppSettings(appSettingsPath)
+	if appSettings == nil {
+		slog.Error("Failed to load application settings")
+		os.Exit(1)
+	}
 
-	server := core.NewServer(config, configPath)
+	server := core.NewServer(appSettings, appSettingsPath)
 	server.Start()
 
 	r := gin.New()
@@ -75,12 +79,12 @@ func main() {
 	r.Use(static.Serve("/_app", appFs))
 
 	r.GET("/configs", api.GetConfigsHandler(server))
-	r.GET("/configs/:path/:id/backups", api.ListConfigBackupsHandler(server))
-	r.GET("/configs/:path/:id/backups/:filename", api.GetConfigBackupHandler(server))
-	r.GET("/configs/:path/:id/compare/:left/diff/:right", api.GetBackupDiffHandler(server))
-	r.POST("/configs/:path/:id/backups/:filename/restore", api.RestoreBackupHandler(server))
-	r.DELETE("/configs/:path/:id/backups/:filename", api.DeleteConfigBackupHandler(server))
-	r.DELETE("/configs/:path/:id", api.DeleteAllConfigBackupsHandler(server))
+	r.GET("/configs/:group/:path/:id/backups", api.ListConfigBackupsHandler(server))
+	r.GET("/configs/:group/:path/:id/backups/:filename", api.GetConfigBackupHandler(server))
+	r.GET("/configs/:group/:path/:id/compare/:left/diff/:right", api.GetBackupDiffHandler(server))
+	r.POST("/configs/:group/:path/:id/backups/:filename/restore", api.RestoreBackupHandler(server))
+	r.DELETE("/configs/:group/:path/:id/backups/:filename", api.DeleteConfigBackupHandler(server))
+	r.DELETE("/configs/:group/:path/:id", api.DeleteAllConfigBackupsHandler(server))
 	r.POST("/backup", api.ProcessConfigsHandler(server))
 	r.GET("/settings", api.GetSettingsHandler(server))
 	r.PUT("/settings", api.UpdateSettingsHandler(server))
@@ -110,8 +114,8 @@ func main() {
 		os.Exit(0)
 	}()
 
-	slog.Info("Starting API server", "port", config.Port)
-	if err := r.Run(config.Port); err != nil {
+	slog.Info("Starting API server", "port", appSettings.Port)
+	if err := r.Run(appSettings.Port); err != nil {
 		slog.Error("Failed to start server", "error", err)
 		os.Exit(1)
 	}
