@@ -55,10 +55,14 @@
       return "Group name contains invalid characters";
     }
     const reserved = ["null", "undefined", "admin", "root", "system"];
-    if (reserved.some(r => r.toLowerCase() === trimmed.toLowerCase())) {
+    if (reserved.some((r) => r.toLowerCase() === trimmed.toLowerCase())) {
       return `Group name '${trimmed}' is reserved`;
     }
-    if (getGroupNames().some(existing => existing.toLowerCase() === trimmed.toLowerCase())) {
+    if (
+      getGroupNames().some(
+        (existing) => existing.toLowerCase() === trimmed.toLowerCase()
+      )
+    ) {
       return `Group name '${trimmed}' already exists`;
     }
     return null;
@@ -81,11 +85,14 @@
     return null;
   }
 
-  function validateConfigInGroup(config: ConfigBackupOptions, groupIndex: number): string | null {
+  function validateConfigInGroup(
+    config: ConfigBackupOptions,
+    groupIndex: number
+  ): string | null {
     if (!config.name?.trim()) {
       return "Config name cannot be empty";
     }
-    
+
     const pathError = validateConfigPath(config.path || "");
     if (pathError) {
       return pathError;
@@ -104,11 +111,19 @@
       }
     }
 
-    if (config.maxBackups !== null && config.maxBackups !== undefined && config.maxBackups < 1) {
+    if (
+      config.maxBackups !== null &&
+      config.maxBackups !== undefined &&
+      config.maxBackups < 1
+    ) {
       return "Max backups must be at least 1";
     }
 
-    if (config.maxBackupAgeDays !== null && config.maxBackupAgeDays !== undefined && config.maxBackupAgeDays < 1) {
+    if (
+      config.maxBackupAgeDays !== null &&
+      config.maxBackupAgeDays !== undefined &&
+      config.maxBackupAgeDays < 1
+    ) {
       return "Max backup age days must be at least 1";
     }
 
@@ -176,7 +191,9 @@
     }
 
     try {
-      settings.configGroups = settings.configGroups.filter((_, i) => i !== index);
+      settings.configGroups = settings.configGroups.filter(
+        (_, i) => i !== index
+      );
       if (editingGroupIndex === index) {
         onEditingGroupIndexChange(null);
       }
@@ -221,7 +238,7 @@
       groupError = "Invalid group index";
       return;
     }
-    
+
     const group = settings.configGroups[groupIndex];
     if (configIndex < 0 || configIndex >= group.configs.length) {
       configError = "Invalid config index";
@@ -238,7 +255,9 @@
     }
 
     try {
-      settings.configGroups[groupIndex].configs = group.configs.filter((_, i) => i !== configIndex);
+      settings.configGroups[groupIndex].configs = group.configs.filter(
+        (_, i) => i !== configIndex
+      );
     } catch (err) {
       configError = "Failed to remove config from group";
       console.error("Error removing config from group:", err);
@@ -251,7 +270,10 @@
     toGroupName: string
   ) {
     clearErrors();
-    if (fromGroupIndex < 0 || fromGroupIndex >= (settings.configGroups?.length || 0)) {
+    if (
+      fromGroupIndex < 0 ||
+      fromGroupIndex >= (settings.configGroups?.length || 0)
+    ) {
       groupError = "Invalid source group index";
       return;
     }
@@ -272,7 +294,6 @@
       return;
     }
 
-    // Validate config in target group
     const validation = validateConfigInGroup(config, toGroupIndex);
     if (validation) {
       configError = validation;
@@ -280,10 +301,10 @@
     }
 
     try {
-      // Remove from source group
-      settings.configGroups[fromGroupIndex].configs = fromGroup.configs.filter((_, i) => i !== configIndex);
+      settings.configGroups[fromGroupIndex].configs = fromGroup.configs.filter(
+        (_, i) => i !== configIndex
+      );
 
-      // Add to target group
       settings.configGroups[toGroupIndex].configs = [
         ...settings.configGroups[toGroupIndex].configs,
         config,
@@ -314,7 +335,6 @@
         name: `${configToDuplicate.name} (copy)`,
       };
 
-      // Validate the duplicated config
       const validation = validateConfigInGroup(duplicated, groupIndex);
       if (validation) {
         configError = validation;
@@ -331,12 +351,14 @@
     }
   }
 
-  // Add validation for config changes
-  function handleConfigChange(config: ConfigBackupOptions, groupIndex: number, field: string) {
+  function handleConfigChange(
+    config: ConfigBackupOptions,
+    groupIndex: number,
+    field: string
+  ) {
     clearErrors();
-    
-    // Validate immediately on certain field changes
-    if (field === 'path' || field === 'name' || field === 'backupType') {
+
+    if (field === "path" || field === "name" || field === "backupType") {
       const validation = validateConfigInGroup(config, groupIndex);
       if (validation) {
         configError = validation;
@@ -484,17 +506,18 @@
           type="text"
           bind:value={config.name}
           placeholder="Config name"
-          oninput={() => handleConfigChange(config, groupIndex, 'name')}
+          oninput={() => handleConfigChange(config, groupIndex, "name")}
         />
-        <FormInput 
-          type="text" 
-          bind:value={config.path} 
+        <FormInput
+          type="text"
+          bind:value={config.path}
           placeholder="Path"
-          oninput={() => handleConfigChange(config, groupIndex, 'path')} 
+          oninput={() => handleConfigChange(config, groupIndex, "path")}
         />
-        <FormSelect 
+        <FormSelect
           bind:value={config.backupType}
-          onchange={() => handleConfigChange(config, groupIndex, 'backupType')}>
+          onchange={() => handleConfigChange(config, groupIndex, "backupType")}
+        >
           <option value="multiple">Multiple</option>
           <option value="single">Single</option>
           <option value="directory">Directory</option>
@@ -607,7 +630,7 @@
     <div class="section-content">
       <Alert type="error" message={groupError} />
       <Alert type="error" message={configError} />
-      
+
       {#if !settings.configGroups || settings.configGroups.length === 0}
         <div class="empty-state">
           No groups defined. Add a group above to get started.

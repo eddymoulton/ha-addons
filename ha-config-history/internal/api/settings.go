@@ -197,7 +197,6 @@ func UpdateSettingsHandler(s *core.Server) func(c *gin.Context) {
 			return
 		}
 
-		// Additional validation: check for conflicting old/new format
 		if len(newSettings.Configs) > 0 && len(newSettings.ConfigGroups) > 0 {
 			warnings = append(warnings, "Both old configs format and new config groups detected. Using config groups and ignoring old configs.")
 			newSettings.Configs = nil // Clear old format

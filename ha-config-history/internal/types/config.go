@@ -63,6 +63,7 @@ func NewDirectoryConfigBackupOptions(name string, path string, includeFilePatter
 	}
 }
 
+// TODO: V2 - Remove this migration function
 // migrateToGroups converts the old configs array to the new grouped structure
 func migrateToGroups(configs []*ConfigBackupOptions) []*ConfigBackupOptionGroup {
 	if configs == nil {
@@ -196,29 +197,25 @@ func LoadConfig(configPath string) *AppSettings {
 		return appSettings
 	}
 
-	// Handle conflicting configurations
 	if len(appSettings.Configs) > 0 && len(appSettings.ConfigGroups) > 0 {
 		slog.Warn("Both old configs and new config groups exist. Using config groups and clearing old configs.")
 		appSettings.Configs = nil
 		return appSettings
 	}
 
-	// Migration: Convert old configs array to new grouped structure
+	// TODO: V2 - Remove migration code
 	if len(appSettings.Configs) > 0 && len(appSettings.ConfigGroups) == 0 {
 		slog.Info("Migrating configuration to grouped structure")
 
-		// Perform migration
 		migratedGroups := migrateToGroups(appSettings.Configs)
 		if len(migratedGroups) == 0 {
 			slog.Error("Migration failed: no groups created from existing configs")
 			return appSettings
 		}
 
-		// Backup old configuration before clearing
 		oldConfigs := appSettings.Configs
 		appSettings.ConfigGroups = migratedGroups
 
-		// Save migrated configuration first
 		if err := saveConfig(configPath, appSettings); err != nil {
 			slog.Error("Failed to save migrated configuration, reverting", "error", err)
 			// Revert on save failure

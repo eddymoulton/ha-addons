@@ -31,16 +31,13 @@ func GetConfigsHandler(s *core.Server) func(c *gin.Context) {
 			metadata = []*types.ConfigMetadata{}
 		}
 
-		// Create groups mapping from ConfigBackupOptionGroups
 		groups := make(map[string][]*types.ConfigMetadata)
 
-		// Build lookup for config metadata by path
 		metadataByPath := make(map[string]*types.ConfigMetadata)
 		for _, meta := range metadata {
 			metadataByPath[meta.Path] = meta
 		}
 
-		// Group metadata by ConfigBackupOptionGroup
 		for _, configGroup := range s.AppSettings.ConfigGroups {
 			groupConfigs := make([]*types.ConfigMetadata, 0)
 			for _, config := range configGroup.Configs {
@@ -52,7 +49,6 @@ func GetConfigsHandler(s *core.Server) func(c *gin.Context) {
 				groups[configGroup.GroupName] = groupConfigs
 			}
 		}
-
 
 		c.IndentedJSON(http.StatusOK, ConfigResponse{
 			Configs: metadata,
