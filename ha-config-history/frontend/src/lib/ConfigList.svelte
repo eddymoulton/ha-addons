@@ -61,7 +61,6 @@
       groups = configResponse.groups;
       if (Object.keys(groups).length > 0) {
         selectedGroupName = Object.keys(groups)[0];
-        console.log("Default selected group:", selectedGroupName);
       }
     } catch (err) {
       error = getErrorMessage(err, "Failed to load configs");
