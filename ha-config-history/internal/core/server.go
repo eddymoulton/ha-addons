@@ -30,12 +30,13 @@ func (s *Server) validateConfig() {
 			"dir", s.AppSettings.HomeAssistantConfigDir)
 	}
 
-	uniquePaths := make(map[string]struct{})
 	// Check configs from new grouped structure
 	for _, group := range s.AppSettings.ConfigGroups {
+		uniquePaths := make(map[string]struct{})
 		for _, options := range group.Configs {
 			if _, exists := uniquePaths[options.Path]; exists {
-				slog.Error("Duplicate config path found in settings",
+				slog.Warn("Duplicate config path found in group",
+					"group", group.GroupName,
 					"path", options.Path,
 					"name", options.Name)
 			} else {
