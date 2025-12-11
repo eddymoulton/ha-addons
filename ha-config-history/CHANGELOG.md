@@ -1,13 +1,5 @@
 # Changelog
 
-## [1.3.0](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.2.2...ha-config-history-v1.3.0) (2025-12-11)
-
-
-### Features
-
-* add config groups ([#11](https://github.com/eddymoulton/ha-addons/issues/11)) ([bf49a95](https://github.com/eddymoulton/ha-addons/commit/bf49a95e9e452c17b0e4358ed587fd902445974f))
-* add more default configs ([bc6c444](https://github.com/eddymoulton/ha-addons/commit/bc6c444dc278c98e8ff1412ad377348688b8141d))
-
 ## [1.2.2](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.2.1...ha-config-history-v1.2.2) (2025-12-04)
 
 
