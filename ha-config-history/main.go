@@ -38,7 +38,7 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	config := types.LoadConfig("config.json")
+	config := types.LoadConfig("/data/config.json")
 
 	server := core.NewServer(config)
 	server.Start()
