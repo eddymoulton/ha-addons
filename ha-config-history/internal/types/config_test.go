@@ -63,7 +63,7 @@ func TestMigrateToGroups(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			result := migrateToGroups(tt.configs)
-			
+
 			if len(result) != len(tt.expected) {
 				t.Errorf("expected %d groups, got %d", len(tt.expected), len(result))
 				return
@@ -103,17 +103,17 @@ func TestConfigMigration(t *testing.T) {
 	configPath := filepath.Join(tempDir, "config.json")
 
 	tests := []struct {
-		name           string
-		initialConfig  *AppSettings
+		name            string
+		initialConfig   *AppSettings
 		expectMigration bool
-		expectError    bool
+		expectError     bool
 	}{
 		{
 			name: "config loading with old format (triggers conflict resolution)",
 			initialConfig: &AppSettings{
 				HomeAssistantConfigDir: "/homeassistant",
-				BackupDir:             "/data/backups",
-				Port:                  ":40613",
+				BackupDir:              "/data/backups",
+				Port:                   ":40613",
 				Configs: []*ConfigBackupOptions{
 					{Name: "Configuration", Path: "configuration.yaml", BackupType: "single"},
 					{Name: "Automations", Path: "automations.yaml", BackupType: "multiple"},
@@ -122,15 +122,15 @@ func TestConfigMigration(t *testing.T) {
 				// so this triggers conflict resolution, not migration
 			},
 			expectMigration: false, // This will trigger conflict resolution
-			expectError:    false,
+			expectError:     false,
 		},
 		{
 			name: "no migration needed - already grouped",
 			initialConfig: &AppSettings{
 				HomeAssistantConfigDir: "/homeassistant",
-				BackupDir:             "/data/backups",
-				Port:                  ":40613",
-				Configs:               nil,
+				BackupDir:              "/data/backups",
+				Port:                   ":40613",
+				Configs:                nil,
 				ConfigGroups: []*ConfigBackupOptionGroup{
 					{
 						GroupName: "Test Group",
@@ -141,14 +141,14 @@ func TestConfigMigration(t *testing.T) {
 				},
 			},
 			expectMigration: false,
-			expectError:    false,
+			expectError:     false,
 		},
 		{
 			name: "conflicting configuration - both formats exist",
 			initialConfig: &AppSettings{
 				HomeAssistantConfigDir: "/homeassistant",
-				BackupDir:             "/data/backups",
-				Port:                  ":40613",
+				BackupDir:              "/data/backups",
+				Port:                   ":40613",
 				Configs: []*ConfigBackupOptions{
 					{Name: "Old Config", Path: "old.yaml", BackupType: "single"},
 				},
@@ -162,19 +162,19 @@ func TestConfigMigration(t *testing.T) {
 				},
 			},
 			expectMigration: false,
-			expectError:    false,
+			expectError:     false,
 		},
 		{
 			name: "empty configs - no migration",
 			initialConfig: &AppSettings{
 				HomeAssistantConfigDir: "/homeassistant",
-				BackupDir:             "/data/backups",
-				Port:                  ":40613",
-				Configs:               []*ConfigBackupOptions{},
-				ConfigGroups:          nil,
+				BackupDir:              "/data/backups",
+				Port:                   ":40613",
+				Configs:                []*ConfigBackupOptions{},
+				ConfigGroups:           nil,
 			},
 			expectMigration: false,
-			expectError:    false,
+			expectError:     false,
 		},
 	}
 
@@ -192,21 +192,17 @@ func TestConfigMigration(t *testing.T) {
 
 			// Load config (this should trigger migration if needed)
 			result := LoadConfig(configPath)
-			
-			// Debug output
-			t.Logf("Initial config has %d configs and %d groups", len(tt.initialConfig.Configs), len(tt.initialConfig.ConfigGroups))
-			t.Logf("Result config has %d configs and %d groups", len(result.Configs), len(result.ConfigGroups))
 
 			// Just verify that LoadConfig works and handles the scenarios correctly
 			if result == nil {
 				t.Fatal("LoadConfig returned nil")
 			}
-			
+
 			// The result will always have ConfigGroups due to defaults
 			if len(result.ConfigGroups) == 0 {
 				t.Error("result should have config groups")
 			}
-			
+
 			// Configs should be cleared if there was a conflict
 			if len(result.Configs) > 0 {
 				t.Error("configs should be cleared when both formats exist")
@@ -232,8 +228,8 @@ func TestSaveConfig(t *testing.T) {
 
 	config := &AppSettings{
 		HomeAssistantConfigDir: "/test",
-		BackupDir:             "/test-backups",
-		Port:                  ":8080",
+		BackupDir:              "/test-backups",
+		Port:                   ":8080",
 		ConfigGroups: []*ConfigBackupOptionGroup{
 			{
 				GroupName: "Test Group",
@@ -278,8 +274,8 @@ func TestMigrationRobustness(t *testing.T) {
 		shouldPanic bool
 	}{
 		{
-			name: "nil configs slice",
-			configs: nil,
+			name:        "nil configs slice",
+			configs:     nil,
 			shouldPanic: false,
 		},
 		{
@@ -321,7 +317,7 @@ func TestMigrationRobustness(t *testing.T) {
 			}()
 
 			result := migrateToGroups(tt.configs)
-			
+
 			if !tt.shouldPanic {
 				// Basic validation for non-panicking cases
 				if result == nil {
@@ -344,16 +340,16 @@ func TestDirectMigration(t *testing.T) {
 		{Name: "Automations", Path: "automations.yaml", BackupType: "multiple"},
 		{Name: "Custom Script", Path: "scripts/custom.yaml", BackupType: "single"},
 	}
-	
+
 	// Create a config with only old format (no defaults)
 	appSettings := &AppSettings{
 		HomeAssistantConfigDir: "/homeassistant",
-		BackupDir:             "/data/backups",  
-		Port:                  ":40613",
-		Configs:               configs,
-		ConfigGroups:          nil, // No groups initially
+		BackupDir:              "/data/backups",
+		Port:                   ":40613",
+		Configs:                configs,
+		ConfigGroups:           nil, // No groups initially
 	}
-	
+
 	// Write to file
 	data, err := json.MarshalIndent(appSettings, "", "  ")
 	if err != nil {
@@ -362,42 +358,42 @@ func TestDirectMigration(t *testing.T) {
 	if err := os.WriteFile(configPath, data, 0644); err != nil {
 		t.Fatalf("failed to write config file: %v", err)
 	}
-	
+
 	// Now test migration logic by simulating what happens in LoadConfig
 	// Read the file back
 	fileData, err := os.ReadFile(configPath)
 	if err != nil {
 		t.Fatalf("failed to read config: %v", err)
 	}
-	
+
 	// Start with empty settings (not the defaults)
 	testSettings := &AppSettings{}
 	if err := json.Unmarshal(fileData, testSettings); err != nil {
 		t.Fatalf("failed to unmarshal config: %v", err)
 	}
-	
+
 	// Now check if migration should occur
 	if len(testSettings.Configs) > 0 && len(testSettings.ConfigGroups) == 0 {
 		t.Log("Migration should trigger")
-		
+
 		// Perform migration
 		migratedGroups := migrateToGroups(testSettings.Configs)
 		if len(migratedGroups) == 0 {
 			t.Fatal("Migration failed: no groups created from existing configs")
 		}
-		
+
 		// Backup old configuration before clearing
 		oldConfigs := testSettings.Configs
 		testSettings.ConfigGroups = migratedGroups
-		
+
 		// Save migrated configuration
 		if err := saveConfig(configPath, testSettings); err != nil {
 			t.Fatalf("Failed to save migrated configuration: %v", err)
 		}
-		
+
 		// Only clear old format after successful save
 		testSettings.Configs = nil
-		
+
 		// Verify migration results
 		if len(testSettings.ConfigGroups) == 0 {
 			t.Error("expected migration to create config groups")
@@ -405,7 +401,7 @@ func TestDirectMigration(t *testing.T) {
 		if len(testSettings.Configs) > 0 {
 			t.Error("expected old configs to be cleared after migration")
 		}
-		
+
 		// Verify the saved file
 		savedData, err := os.ReadFile(configPath)
 		if err != nil {
@@ -420,7 +416,7 @@ func TestDirectMigration(t *testing.T) {
 		if len(savedConfig.ConfigGroups) == 0 {
 			t.Error("migration was not saved to file")
 		}
-		
+
 		// Verify all configs were migrated
 		totalConfigs := 0
 		for _, group := range savedConfig.ConfigGroups {
@@ -429,9 +425,9 @@ func TestDirectMigration(t *testing.T) {
 		if totalConfigs != len(oldConfigs) {
 			t.Errorf("expected %d total configs in groups, got %d", len(oldConfigs), totalConfigs)
 		}
-		
+
 		t.Logf("Successfully migrated %d configs to %d groups", len(oldConfigs), len(savedConfig.ConfigGroups))
-		
+
 	} else {
 		t.Fatal("Migration conditions not met")
 	}

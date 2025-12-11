@@ -90,7 +90,9 @@ func validateConfigGroups(configGroups []*types.ConfigBackupOptionGroup) error {
 		}
 
 		for j, config := range group.Configs {
-			validateConfig(config, j, group.GroupName, configPaths)
+			if err := validateConfig(config, j, group.GroupName, configPaths); err != nil {
+				return err
+			}
 		}
 	}
 
