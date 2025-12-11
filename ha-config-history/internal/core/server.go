@@ -31,13 +31,16 @@ func (s *Server) validateConfig() {
 	}
 
 	uniquePaths := make(map[string]struct{})
-	for _, options := range s.AppSettings.Configs {
-		if _, exists := uniquePaths[options.Path]; exists {
-			slog.Error("Duplicate config path found in settings",
-				"path", options.Path,
-				"name", options.Name)
-		} else {
-			uniquePaths[options.Path] = struct{}{}
+	// Check configs from new grouped structure
+	for _, group := range s.AppSettings.ConfigGroups {
+		for _, options := range group.Configs {
+			if _, exists := uniquePaths[options.Path]; exists {
+				slog.Error("Duplicate config path found in settings",
+					"path", options.Path,
+					"name", options.Name)
+			} else {
+				uniquePaths[options.Path] = struct{}{}
+			}
 		}
 	}
 }

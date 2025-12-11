@@ -1,6 +1,6 @@
 export interface ConfigMetadata {
   id: string;
-  group: string;
+  path: string;
   friendlyName: string;
   lastHash?: string;
   backupCount: number;
@@ -38,6 +38,11 @@ export interface ConfigBackupOptions {
   excludeFilePatterns?: string[];
 }
 
+export interface ConfigBackupOptionGroup {
+  groupName: string;
+  configs: ConfigBackupOptions[];
+}
+
 export interface AppSettings {
   homeAssistantConfigDir: string;
   backupDir: string;
@@ -45,7 +50,7 @@ export interface AppSettings {
   cronSchedule?: string;
   defaultMaxBackups?: number;
   defaultMaxBackupAgeDays?: number;
-  configs: ConfigBackupOptions[];
+  configGroups: ConfigBackupOptionGroup[];
 }
 
 export interface UpdateSettingsResponse {
@@ -58,4 +63,8 @@ export interface RestoreBackupResponse {
   success: boolean;
   message?: string;
   error?: string;
+}
+
+export interface ConfigResponse {
+  groups: Record<string, ConfigMetadata[]>;
 }

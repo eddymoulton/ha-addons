@@ -55,7 +55,7 @@
     error = null;
 
     try {
-      backups = await api.getConfigBackups(config.group, config.id);
+      backups = await api.getConfigBackups(config.path, config.id);
     } catch (err) {
       error = getErrorMessage(err, "Failed to load backups");
     } finally {
@@ -83,7 +83,7 @@
 
     deleting = true;
     try {
-      await api.deleteBackup(config.group, config.id, backupToDelete.filename);
+      await api.deleteBackup(config.path, config.id, backupToDelete.filename);
 
       // Reload backups after successful deletion
       await loadBackups();

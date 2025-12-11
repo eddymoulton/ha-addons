@@ -8,8 +8,8 @@ import (
 )
 
 type ConfigIdentifier struct {
-	ID    string `json:"id,omitempty"`
-	Group string `json:"group,omitempty"`
+	ID   string `json:"id,omitempty"`
+	Path string `json:"path,omitempty"`
 }
 
 type ConfigMetadata struct {
@@ -24,8 +24,8 @@ type ConfigMetadata struct {
 func NewConfigMetadata(configBackup *ConfigBackup, backupCount int, backupsSize int64, backupType string) *ConfigMetadata {
 	return &ConfigMetadata{
 		ConfigIdentifier: ConfigIdentifier{
-			ID:    configBackup.ID,
-			Group: configBackup.Group,
+			ID:   configBackup.ID,
+			Path: configBackup.Path,
 		},
 		FriendlyName: configBackup.FriendlyName,
 		LastHash:     configBackup.Hash,
@@ -49,8 +49,8 @@ func NewBlobConfigBackup(filename, filepath string, blob []byte, config *ConfigB
 	if config.BackupType == stateName[BackupTypeSingle] {
 		return &ConfigBackup{
 			ConfigIdentifier: ConfigIdentifier{
-				ID:    config.Path,
-				Group: config.Path,
+				ID:   config.Path,
+				Path: config.Path,
 			},
 			FriendlyName: config.Path,
 			Hash:         hashByteSlice(blob),
@@ -68,8 +68,8 @@ func NewBlobConfigBackup(filename, filepath string, blob []byte, config *ConfigB
 	if config.BackupType == stateName[BackupTypeDirectory] {
 		return &ConfigBackup{
 			ConfigIdentifier: ConfigIdentifier{
-				ID:    filename,
-				Group: config.Path,
+				ID:   filename,
+				Path: config.Path,
 			},
 			FriendlyName: filename,
 			Hash:         hashByteSlice(blob),
@@ -93,8 +93,8 @@ func NewYamlConfigBackup(filename, filepath string, yamlNode *yaml.Node, config 
 	if config.BackupType == stateName[BackupTypeMultiple] {
 		return &ConfigBackup{
 			ConfigIdentifier: ConfigIdentifier{
-				ID:    GetYamlNodeValue(yamlNode, *config.IdNode),
-				Group: config.Path,
+				ID:   GetYamlNodeValue(yamlNode, *config.IdNode),
+				Path: config.Path,
 			},
 			FriendlyName: GetYamlNodeValue(yamlNode, *config.FriendlyNameNode),
 			Hash:         hashByteSlice(blob),

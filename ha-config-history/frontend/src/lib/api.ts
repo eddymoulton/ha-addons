@@ -5,12 +5,13 @@ import type {
   AppSettings,
   UpdateSettingsResponse,
   RestoreBackupResponse,
+  ConfigResponse,
 } from "./types";
 
 const API_BASE = window.location.href.replace(/\/+$/, "") || "";
 
 export class ApiClient {
-  async getConfigs(): Promise<ConfigMetadata[]> {
+  async getConfigs(): Promise<ConfigResponse> {
     const response = await fetch(`${API_BASE}/configs`);
     if (!response.ok) {
       throw new Error(`Failed to fetch configs: ${response.statusText}`);
@@ -18,8 +19,8 @@ export class ApiClient {
     return response.json();
   }
 
-  async getConfigBackups(group: string, id: string): Promise<BackupInfo[]> {
-    const response = await fetch(`${API_BASE}/configs/${group}/${id}/backups`);
+  async getConfigBackups(path: string, id: string): Promise<BackupInfo[]> {
+    const response = await fetch(`${API_BASE}/configs/${path}/${id}/backups`);
     if (!response.ok) {
       throw new Error(`Failed to fetch backups: ${response.statusText}`);
     }
@@ -27,12 +28,12 @@ export class ApiClient {
   }
 
   async getBackupContent(
-    group: string,
+    path: string,
     id: string,
     filename: string
   ): Promise<string> {
     const response = await fetch(
-      `${API_BASE}/configs/${group}/${id}/backups/${filename}`
+      `${API_BASE}/configs/${path}/${id}/backups/${filename}`
     );
     if (!response.ok) {
       throw new Error(`Failed to fetch backup content: ${response.statusText}`);
@@ -41,13 +42,13 @@ export class ApiClient {
   }
 
   async compareBackups(
-    group: string,
+    path: string,
     id: string,
     leftFilename: string,
     rightFilename: string
   ): Promise<BackupDiffResponse> {
     const response = await fetch(
-      `${API_BASE}/configs/${group}/${id}/compare/${encodeURIComponent(
+      `${API_BASE}/configs/${path}/${id}/compare/${encodeURIComponent(
         leftFilename
       )}/diff/${encodeURIComponent(rightFilename)}`
     );
@@ -80,12 +81,12 @@ export class ApiClient {
   }
 
   async restoreBackup(
-    group: string,
+    path: string,
     id: string,
     filename: string
   ): Promise<RestoreBackupResponse> {
     const response = await fetch(
-      `${API_BASE}/configs/${group}/${id}/backups/${encodeURIComponent(
+      `${API_BASE}/configs/${path}/${id}/backups/${encodeURIComponent(
         filename
       )}/restore`,
       {
@@ -109,12 +110,12 @@ export class ApiClient {
   }
 
   async deleteBackup(
-    group: string,
+    path: string,
     id: string,
     filename: string
   ): Promise<{ status: string }> {
     const response = await fetch(
-      `${API_BASE}/configs/${group}/${id}/backups/${encodeURIComponent(
+      `${API_BASE}/configs/${path}/${id}/backups/${encodeURIComponent(
         filename
       )}`,
       {
@@ -127,8 +128,8 @@ export class ApiClient {
     return response.json();
   }
 
-  async deleteAllBackups(group: string, id: string): Promise<{ status: string }> {
-    const response = await fetch(`${API_BASE}/configs/${group}/${id}`, {
+  async deleteAllBackups(path: string, id: string): Promise<{ status: string }> {
+    const response = await fetch(`${API_BASE}/configs/${path}/${id}`, {
       method: "DELETE",
     });
     if (!response.ok) {

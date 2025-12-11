@@ -187,7 +187,7 @@ func LoadAllMetadata(backupFolder string) (map[types.ConfigIdentifier]*types.Con
 						return nil, fmt.Errorf("failed to parse metadata JSON in %s: %w", metadataPath, err)
 					}
 
-					metadataMap[types.ConfigIdentifier{Group: group.Name(), ID: config.Name()}] = &metadata
+					metadataMap[types.ConfigIdentifier{Path: group.Name(), ID: config.Name()}] = &metadata
 				}
 			}
 		}
@@ -197,7 +197,7 @@ func LoadAllMetadata(backupFolder string) (map[types.ConfigIdentifier]*types.Con
 }
 
 func GetBackupDirectory(backupFolder string, configBackup *types.ConfigBackup) (string, error) {
-	configBackupFolder := filepath.Join(backupFolder, configBackup.Group, configBackup.ID)
+	configBackupFolder := filepath.Join(backupFolder, configBackup.Path, configBackup.ID)
 
 	if _, err := os.Stat(configBackupFolder); os.IsNotExist(err) {
 		err := os.MkdirAll(configBackupFolder, 0755)

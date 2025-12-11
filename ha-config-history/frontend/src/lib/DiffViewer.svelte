@@ -74,7 +74,7 @@
             // There's a previous backup
             const previousBackup = allBackups[currentIdx + 1];
             diffData = await api.compareBackups(
-              config.group,
+              config.path,
               config.id,
               previousBackup.filename,
               selectedBackup.filename
@@ -84,7 +84,7 @@
             diffData = {
               type: "content",
               content: await api.getBackupContent(
-                config.group,
+                config.path,
                 config.id,
                 selectedBackup.filename
               ),
@@ -99,7 +99,7 @@
             selectedBackup.filename !== currentBackup.filename
           ) {
             diffData = await api.compareBackups(
-              config.group,
+              config.path,
               config.id,
               selectedBackup.filename,
               currentBackup.filename
@@ -108,7 +108,7 @@
             diffData = {
               type: "content",
               content: await api.getBackupContent(
-                config.group,
+                config.path,
                 config.id,
                 selectedBackup.filename
               ),
@@ -119,7 +119,7 @@
         case "two-backups":
           if (secondBackup) {
             diffData = await api.compareBackups(
-              config.group,
+              config.path,
               config.id,
               secondBackup.filename,
               selectedBackup.filename
@@ -200,7 +200,7 @@
 
     try {
       const response: RestoreBackupResponse = await api.restoreBackup(
-        config.group,
+        config.path,
         config.id,
         selectedBackup.filename
       );
@@ -313,26 +313,26 @@
                   <span class="file-old">
                     {diffData.oldFilename || "Previous"}
                     {#if diffData.oldFilename}
-                      <small
-                        >({formatRelativeTime(
+                      <small>
+                        ({formatRelativeTime(
                           allBackups.find(
                             (b) => b.filename === diffData!.oldFilename
                           )?.date || ""
-                        )})</small
-                      >
+                        )})
+                      </small>
                     {/if}
                   </span>
                   →
                   <span class="file-new">
                     {diffData.newFilename || "Current"}
                     {#if diffData.newFilename}
-                      <small
-                        >({formatRelativeTime(
+                      <small>
+                        ({formatRelativeTime(
                           allBackups.find(
                             (b) => b.filename === diffData!.newFilename
                           )?.date || ""
-                        )})</small
-                      >
+                        )})
+                      </small>
                     {/if}
                   </span>
                 </div>
@@ -345,9 +345,9 @@
                 <div class="content-header">
                   <h4>Raw Content</h4>
                   {#if diffData.isFirstBackup}
-                    <span class="first-backup-notice"
-                      >This is the first backup - no previous version to compare</span
-                    >
+                    <span class="first-backup-notice">
+                      This is the first backup - no previous version to compare
+                    </span>
                   {/if}
                 </div>
                 <pre class="content-body">{diffData.content}</pre>
