@@ -38,9 +38,14 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	config := types.LoadConfig("/data/config.json")
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		configPath = "/data/config.json"
+	}
 
-	server := core.NewServer(config)
+	config := types.LoadConfig(configPath)
+
+	server := core.NewServer(config, configPath)
 	server.Start()
 
 	r := gin.New()

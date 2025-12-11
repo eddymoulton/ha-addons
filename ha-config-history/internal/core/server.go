@@ -20,6 +20,7 @@ type BackupJob struct {
 type Server struct {
 	State       *State
 	AppSettings *types.AppSettings
+	ConfigPath  string
 	queue       chan BackupJob
 	fileWatcher *fsnotify.Watcher
 }
@@ -46,7 +47,7 @@ func (s *Server) validateConfig() {
 	}
 }
 
-func NewServer(config *types.AppSettings) *Server {
+func NewServer(config *types.AppSettings, configPath string) *Server {
 	metadataMap, err := io.LoadAllMetadata(config.BackupDir)
 	if err != nil {
 		slog.Error("Error loading metadata", "error", err)
@@ -66,6 +67,7 @@ func NewServer(config *types.AppSettings) *Server {
 			FileLookup:           make(map[string]*types.ConfigBackupOptions),
 		},
 		AppSettings: config,
+		ConfigPath:  configPath,
 		queue:       make(chan BackupJob),
 		fileWatcher: fileWatcher,
 	}

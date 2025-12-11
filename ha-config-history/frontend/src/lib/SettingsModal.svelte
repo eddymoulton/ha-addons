@@ -90,7 +90,6 @@
     }
 
     // Validate groups and configs
-    const uniquePaths = new Set<string>();
     const uniqueGroupNames = new Set<string>();
 
     if (!settings.configGroups || settings.configGroups.length === 0) {
@@ -121,13 +120,6 @@
             }
             if (!config.path.trim()) {
               errors.push(`${configId}: Path is required`);
-            }
-            if (uniquePaths.has(config.path)) {
-              errors.push(
-                `Config "${config.name}": Path must be unique across all groups`
-              );
-            } else {
-              uniquePaths.add(config.path);
             }
             if (
               config.maxBackups !== null &&

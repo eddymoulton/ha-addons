@@ -111,8 +111,8 @@ func TestConfigMigration(t *testing.T) {
 		{
 			name: "config loading with old format (triggers conflict resolution)",
 			initialConfig: &AppSettings{
-				HomeAssistantConfigDir: "/homeassistant",
-				BackupDir:              "/data/backups",
+				HomeAssistantConfigDir: "tmp/homeassistant",
+				BackupDir:              "tmp/data/backups",
 				Port:                   ":40613",
 				Configs: []*ConfigBackupOptions{
 					{Name: "Configuration", Path: "configuration.yaml", BackupType: "single"},
@@ -127,8 +127,8 @@ func TestConfigMigration(t *testing.T) {
 		{
 			name: "no migration needed - already grouped",
 			initialConfig: &AppSettings{
-				HomeAssistantConfigDir: "/homeassistant",
-				BackupDir:              "/data/backups",
+				HomeAssistantConfigDir: "tmp/homeassistant",
+				BackupDir:              "tmp/data/backups",
 				Port:                   ":40613",
 				Configs:                nil,
 				ConfigGroups: []*ConfigBackupOptionGroup{
@@ -146,8 +146,8 @@ func TestConfigMigration(t *testing.T) {
 		{
 			name: "conflicting configuration - both formats exist",
 			initialConfig: &AppSettings{
-				HomeAssistantConfigDir: "/homeassistant",
-				BackupDir:              "/data/backups",
+				HomeAssistantConfigDir: "tmp/homeassistant",
+				BackupDir:              "tmp/data/backups",
 				Port:                   ":40613",
 				Configs: []*ConfigBackupOptions{
 					{Name: "Old Config", Path: "old.yaml", BackupType: "single"},
@@ -167,8 +167,8 @@ func TestConfigMigration(t *testing.T) {
 		{
 			name: "empty configs - no migration",
 			initialConfig: &AppSettings{
-				HomeAssistantConfigDir: "/homeassistant",
-				BackupDir:              "/data/backups",
+				HomeAssistantConfigDir: "tmp/homeassistant",
+				BackupDir:              "tmp/data/backups",
 				Port:                   ":40613",
 				Configs:                []*ConfigBackupOptions{},
 				ConfigGroups:           nil,
@@ -227,8 +227,8 @@ func TestSaveConfig(t *testing.T) {
 	configPath := filepath.Join(tempDir, "test-config.json")
 
 	config := &AppSettings{
-		HomeAssistantConfigDir: "/test",
-		BackupDir:              "/test-backups",
+		HomeAssistantConfigDir: "tmp/homeassistant",
+		BackupDir:              "tmp/test-backups",
 		Port:                   ":8080",
 		ConfigGroups: []*ConfigBackupOptionGroup{
 			{
@@ -343,8 +343,8 @@ func TestDirectMigration(t *testing.T) {
 
 	// Create a config with only old format (no defaults)
 	appSettings := &AppSettings{
-		HomeAssistantConfigDir: "/homeassistant",
-		BackupDir:              "/data/backups",
+		HomeAssistantConfigDir: "tmp/homeassistant",
+		BackupDir:              "tmp/data/backups",
 		Port:                   ":40613",
 		Configs:                configs,
 		ConfigGroups:           nil, // No groups initially

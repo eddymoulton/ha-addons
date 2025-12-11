@@ -183,24 +183,6 @@ func TestValidateConfigGroups(t *testing.T) {
 			expectErr: true,
 		},
 		{
-			name: "duplicate config paths",
-			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Group 1",
-					Configs: []*types.ConfigBackupOptions{
-						{Name: "Configuration", Path: "configuration.yaml", BackupType: "single"},
-					},
-				},
-				{
-					GroupName: "Group 2",
-					Configs: []*types.ConfigBackupOptions{
-						{Name: "Configuration Copy", Path: "configuration.yaml", BackupType: "single"},
-					},
-				},
-			},
-			expectErr: true,
-		},
-		{
 			name: "invalid backup type",
 			configGroups: []*types.ConfigBackupOptionGroup{
 				{

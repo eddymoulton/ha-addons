@@ -109,13 +109,6 @@ func validateConfig(config *types.ConfigBackupOptions, configIndex int, groupNam
 		return fmt.Errorf("config '%s' in group '%s': %v", config.Name, groupName, err)
 	}
 
-	// Check for duplicate config paths across groups
-	if existingGroup, exists := configPaths[config.Path]; exists {
-		return fmt.Errorf("config path '%s' is already assigned to group '%s', cannot assign to group '%s'",
-			config.Path, existingGroup, groupName)
-	}
-	configPaths[config.Path] = groupName
-
 	// Validate backup type
 	if config.BackupType != "single" && config.BackupType != "multiple" && config.BackupType != "directory" {
 		return fmt.Errorf("config '%s' in group '%s' has invalid backup type: '%s'",
@@ -213,7 +206,7 @@ func UpdateSettingsHandler(s *core.Server) func(c *gin.Context) {
 			return
 		}
 
-		if err := os.WriteFile("config.json", configData, 0644); err != nil {
+		if err := os.WriteFile(s.ConfigPath, configData, 0644); err != nil {
 			c.JSON(http.StatusInternalServerError, UpdateSettingsResponse{
 				Success: false,
 				Error:   fmt.Sprintf("Failed to save settings file: %v", err),

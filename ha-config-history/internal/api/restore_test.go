@@ -204,7 +204,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			},
 		}
 
-		server := core.NewServer(config)
+		server := core.NewServer(config, "tmp/test-config.json")
 
 		t.Run("Successful single file restore", func(t *testing.T) {
 			router := setupRestoreRouter(server)
@@ -300,7 +300,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			},
 		}
 
-		server := core.NewServer(config)
+		server := core.NewServer(config, "tmp/test-config.json")
 
 		t.Run("Successful single file restore", func(t *testing.T) {
 			router := setupRestoreRouter(server)
@@ -497,7 +497,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 				},
 			}
 
-			server = core.NewServer(config)
+			server = core.NewServer(config, "tmp/test-config.json")
 			return tempDir, backupDir, haConfigDir, targetFile, server
 		}
 
@@ -917,7 +917,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 				},
 			}
 
-			server := core.NewServer(config)
+			server := core.NewServer(config, "tmp/test-config.json")
 			router := setupRestoreRouter(server)
 
 			// First restore
@@ -1005,7 +1005,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 					},
 				}
 
-				server = core.NewServer(config)
+				server = core.NewServer(config, "tmp/test-config.json")
 				return tempDir, backupDir, haConfigDir, targetFile, server
 			}
 
@@ -1186,7 +1186,7 @@ func setupTestServer() *core.Server {
 		},
 	}
 
-	return core.NewServer(config)
+	return core.NewServer(config, "tmp/test-config.json")
 }
 
 func setupRestoreRouter(server *core.Server) *gin.Engine {
