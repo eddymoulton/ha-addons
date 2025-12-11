@@ -24,7 +24,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 
 		testCases := []struct {
 			name           string
-			group          string
+			path           string
 			id             string
 			filename       string
 			expectedStatus int
@@ -32,8 +32,8 @@ func TestRestoreBackupHandler(t *testing.T) {
 			description    string
 		}{
 			{
-				name:           "Explicit parent directory traversal in group",
-				group:          "..",
+				name:           "Explicit parent directory traversal in path",
+				path:           "..",
 				id:             "test-id",
 				filename:       "backup.yaml",
 				expectedStatus: http.StatusBadRequest,
@@ -42,7 +42,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			},
 			{
 				name:           "Explicit parent directory traversal in id",
-				group:          "configs",
+				path:           "configs",
 				id:             "..",
 				filename:       "backup.yaml",
 				expectedStatus: http.StatusBadRequest,
@@ -51,7 +51,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			},
 			{
 				name:           "Explicit parent directory traversal in filename",
-				group:          "configs",
+				path:           "configs",
 				id:             "config1",
 				filename:       "..",
 				expectedStatus: http.StatusBadRequest,
@@ -60,7 +60,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			},
 			{
 				name:           "Valid simple paths",
-				group:          "my-configs",
+				path:           "my-configs",
 				id:             "config-123",
 				filename:       "backup-2024-01-01.yaml",
 				expectedStatus: http.StatusNotFound, // Will fail on file not found, not path validation
@@ -72,7 +72,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				router := setupRestoreRouter(server)
-				req := createRestoreRequest(t, tc.group, tc.id, tc.filename)
+				req := createRestoreRequest(t, tc.path, tc.id, tc.filename)
 
 				w := httptest.NewRecorder()
 				router.ServeHTTP(w, req)
@@ -103,25 +103,25 @@ func TestRestoreBackupHandler(t *testing.T) {
 		// These paths should pass sanitization (though they may fail for other reasons like file not found)
 		validPaths := []struct {
 			name     string
-			group    string
+			path     string
 			id       string
 			filename string
 		}{
 			{
 				name:     "Simple alphanumeric paths",
-				group:    "configs",
+				path:     "configs",
 				id:       "config123",
 				filename: "backup-2024-01-01.yaml",
 			},
 			{
 				name:     "Paths with hyphens and underscores",
-				group:    "my-config-group",
+				path:     "my-config-group",
 				id:       "test_config_01",
 				filename: "backup_2024_01_01.yaml",
 			},
 			{
 				name:     "Paths with dots in filename (not traversal)",
-				group:    "configs",
+				path:     "configs",
 				id:       "config1",
 				filename: "backup.2024.01.01.yaml",
 			},
@@ -130,7 +130,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 		for _, tc := range validPaths {
 			t.Run(tc.name, func(t *testing.T) {
 				router := setupRestoreRouter(server)
-				req := createRestoreRequest(t, tc.group, tc.id, tc.filename)
+				req := createRestoreRequest(t, tc.path, tc.id, tc.filename)
 
 				w := httptest.NewRecorder()
 				router.ServeHTTP(w, req)
@@ -164,11 +164,11 @@ func TestRestoreBackupHandler(t *testing.T) {
 			t.Fatalf("Failed to read test data file: %v", err)
 		}
 
-		group := "config.yaml" // This must match the Path in ConfigBackupOptions
+		path := "config.yaml" // This must match the Path in ConfigBackupOptions
 		id := "test-config"
 		filename := "20240101T120000.backup"
 
-		backupPath := filepath.Join(backupDir, group, id)
+		backupPath := filepath.Join(backupDir, path, id)
 		err = os.MkdirAll(backupPath, 0755)
 		if err != nil {
 			t.Fatalf("Failed to create backup directory: %v", err)
@@ -203,7 +203,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 
 		t.Run("Successful single file restore", func(t *testing.T) {
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, filename)
+			req := createRestoreRequest(t, path, id, filename)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -255,11 +255,11 @@ func TestRestoreBackupHandler(t *testing.T) {
 			t.Fatalf("Failed to read test data file: %v", err)
 		}
 
-		group := "config.yaml" // This must match the Path in ConfigBackupOptions
+		path := "config.yaml" // This must match the Path in ConfigBackupOptions
 		id := "test-config"
 		filename := "20240101T120000.yaml"
 
-		backupPath := filepath.Join(backupDir, group, id)
+		backupPath := filepath.Join(backupDir, path, id)
 		err = os.MkdirAll(backupPath, 0755)
 		if err != nil {
 			t.Fatalf("Failed to create backup directory: %v", err)
@@ -294,7 +294,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 
 		t.Run("Successful single file restore", func(t *testing.T) {
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, filename)
+			req := createRestoreRequest(t, path, id, filename)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -336,7 +336,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			}
 
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, filename)
+			req := createRestoreRequest(t, path, id, filename)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -374,7 +374,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			}
 
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, "20240102T120000.yaml")
+			req := createRestoreRequest(t, path, id, "20240102T120000.yaml")
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -414,7 +414,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			}
 
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, filename)
+			req := createRestoreRequest(t, path, id, filename)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -486,8 +486,8 @@ func TestRestoreBackupHandler(t *testing.T) {
 			return tempDir, backupDir, haConfigDir, targetFile, server
 		}
 
-		createBackup := func(t *testing.T, backupDir, group, id, filename string, content []byte) {
-			backupPath := filepath.Join(backupDir, group, id)
+		createBackup := func(t *testing.T, backupDir, path, id, filename string, content []byte) {
+			backupPath := filepath.Join(backupDir, path, id)
 			err := os.MkdirAll(backupPath, 0755)
 			if err != nil {
 				t.Fatalf("Failed to create backup directory: %v", err)
@@ -503,7 +503,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 		t.Run("Restore middle section and verify others unchanged", func(t *testing.T) {
 			_, backupDir, _, targetFile, server := setupPartialRestoreTest(t)
 
-			group := "automations.yaml"
+			path := "automations.yaml"
 			id := "automation_2"
 			filename := "20240101T120000.yaml"
 
@@ -513,10 +513,10 @@ func TestRestoreBackupHandler(t *testing.T) {
 				t.Fatalf("Failed to read test data file: %v", err)
 			}
 
-			createBackup(t, backupDir, group, id, filename, backupContent)
+			createBackup(t, backupDir, path, id, filename, backupContent)
 
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, filename)
+			req := createRestoreRequest(t, path, id, filename)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -579,7 +579,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 		t.Run("Restore first section and verify others unchanged", func(t *testing.T) {
 			_, backupDir, _, targetFile, server := setupPartialRestoreTest(t)
 
-			group := "automations.yaml"
+			path := "automations.yaml"
 			id := "automation_1"
 			filename := "20240101T120000.yaml"
 
@@ -589,10 +589,10 @@ func TestRestoreBackupHandler(t *testing.T) {
 				t.Fatalf("Failed to read test data file: %v", err)
 			}
 
-			createBackup(t, backupDir, group, id, filename, backupContent)
+			createBackup(t, backupDir, path, id, filename, backupContent)
 
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, filename)
+			req := createRestoreRequest(t, path, id, filename)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -636,7 +636,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 		t.Run("Restore last section and verify others unchanged", func(t *testing.T) {
 			_, backupDir, _, targetFile, server := setupPartialRestoreTest(t)
 
-			group := "automations.yaml"
+			path := "automations.yaml"
 			id := "automation_3"
 			filename := "20240101T120000.yaml"
 
@@ -646,10 +646,10 @@ func TestRestoreBackupHandler(t *testing.T) {
 				t.Fatalf("Failed to read test data file: %v", err)
 			}
 
-			createBackup(t, backupDir, group, id, filename, backupContent)
+			createBackup(t, backupDir, path, id, filename, backupContent)
 
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, filename)
+			req := createRestoreRequest(t, path, id, filename)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -696,7 +696,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 		t.Run("Verify YAML structure remains valid after partial restore", func(t *testing.T) {
 			_, backupDir, _, targetFile, server := setupPartialRestoreTest(t)
 
-			group := "automations.yaml"
+			path := "automations.yaml"
 			id := "automation_2"
 			filename := "20240101T120000.yaml"
 
@@ -705,10 +705,10 @@ func TestRestoreBackupHandler(t *testing.T) {
 				t.Fatalf("Failed to read test data file: %v", err)
 			}
 
-			createBackup(t, backupDir, group, id, filename, backupContent)
+			createBackup(t, backupDir, path, id, filename, backupContent)
 
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, filename)
+			req := createRestoreRequest(t, path, id, filename)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -777,7 +777,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			_, backupDir, _, targetFile, server := setupPartialRestoreTest(t)
 
 			// First restore automation_2
-			group := "automations.yaml"
+			path := "automations.yaml"
 			id := "automation_2"
 			filename := "20240101T120000.yaml"
 
@@ -786,10 +786,10 @@ func TestRestoreBackupHandler(t *testing.T) {
 				t.Fatalf("Failed to read test data file: %v", err)
 			}
 
-			createBackup(t, backupDir, group, id, filename, backupContent)
+			createBackup(t, backupDir, path, id, filename, backupContent)
 
 			router := setupRestoreRouter(server)
-			req := createRestoreRequest(t, group, id, filename)
+			req := createRestoreRequest(t, path, id, filename)
 
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -862,11 +862,11 @@ func TestRestoreBackupHandler(t *testing.T) {
 				t.Fatalf("Failed to read test data file: %v", err)
 			}
 
-			group := "config.yaml"
+			path := "config.yaml"
 			id := "test-config"
 			filename := "20240101T120000.yaml"
 
-			backupPath := filepath.Join(backupDir, group, id)
+			backupPath := filepath.Join(backupDir, path, id)
 			err = os.MkdirAll(backupPath, 0755)
 			if err != nil {
 				t.Fatalf("Failed to create backup directory: %v", err)
@@ -901,7 +901,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			router := setupRestoreRouter(server)
 
 			// First restore
-			req1 := createRestoreRequest(t, group, id, filename)
+			req1 := createRestoreRequest(t, path, id, filename)
 			w1 := httptest.NewRecorder()
 			router.ServeHTTP(w1, req1)
 
@@ -915,7 +915,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			}
 
 			// Second restore (should produce identical result)
-			req2 := createRestoreRequest(t, group, id, filename)
+			req2 := createRestoreRequest(t, path, id, filename)
 			w2 := httptest.NewRecorder()
 			router.ServeHTTP(w2, req2)
 
@@ -986,7 +986,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 
 			_, backupDir, _, targetFile, server := setupPartialIdempotencyTest(t)
 
-			group := "automations.yaml"
+			path := "automations.yaml"
 			id := "automation_2"
 			filename := "20240101T120000.yaml"
 
@@ -995,7 +995,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 				t.Fatalf("Failed to read test data file: %v", err)
 			}
 
-			backupPath := filepath.Join(backupDir, group, id)
+			backupPath := filepath.Join(backupDir, path, id)
 			err = os.MkdirAll(backupPath, 0755)
 			if err != nil {
 				t.Fatalf("Failed to create backup directory: %v", err)
@@ -1010,7 +1010,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			router := setupRestoreRouter(server)
 
 			// First restore
-			req1 := createRestoreRequest(t, group, id, filename)
+			req1 := createRestoreRequest(t, path, id, filename)
 			w1 := httptest.NewRecorder()
 			router.ServeHTTP(w1, req1)
 
@@ -1024,7 +1024,7 @@ func TestRestoreBackupHandler(t *testing.T) {
 			}
 
 			// Second restore (should produce identical result)
-			req2 := createRestoreRequest(t, group, id, filename)
+			req2 := createRestoreRequest(t, path, id, filename)
 			w2 := httptest.NewRecorder()
 			router.ServeHTTP(w2, req2)
 
@@ -1161,14 +1161,14 @@ func setupTestServer() *core.Server {
 
 func setupRestoreRouter(server *core.Server) *gin.Engine {
 	router := gin.New()
-	router.POST("/configs/:group/:id/backups/:filename/restore", api.RestoreBackupHandler(server))
+	router.POST("/configs/:path/:id/backups/:filename/restore", api.RestoreBackupHandler(server))
 	return router
 }
 
-func createRestoreRequest(t *testing.T, group, id, filename string) *http.Request {
+func createRestoreRequest(t *testing.T, path, id, filename string) *http.Request {
 	req, err := http.NewRequest(
 		http.MethodPost,
-		"/configs/"+group+"/"+id+"/backups/"+filename+"/restore",
+		"/configs/"+path+"/"+id+"/backups/"+filename+"/restore",
 		nil,
 	)
 	if err != nil {
@@ -1181,7 +1181,7 @@ func assertNoPathValidationError(t *testing.T, w *httptest.ResponseRecorder, des
 	if w.Code == http.StatusBadRequest {
 		var response api.RestoreBackupResponse
 		if err := json.Unmarshal(w.Body.Bytes(), &response); err == nil {
-			if strings.Contains(response.Error, "Invalid group parameter") ||
+			if strings.Contains(response.Error, "Invalid path parameter") ||
 				strings.Contains(response.Error, "Invalid id parameter") ||
 				strings.Contains(response.Error, "Invalid filename parameter") {
 				t.Errorf("%s: Valid path was incorrectly blocked: %s", description, response.Error)
