@@ -58,7 +58,6 @@
     error = null;
     try {
       const configResponse = await api.getConfigs();
-      console.log("Loaded configs:", configResponse);
       groups = configResponse.groups;
       if (Object.keys(groups).length > 0) {
         selectedGroupName = Object.keys(groups)[0];
