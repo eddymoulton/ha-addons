@@ -16,7 +16,7 @@ func Test_ReadMultipleConfigsFromSingleFile(t *testing.T) {
 		expected := []*types.ConfigBackup{
 			{
 				ConfigIdentifier: types.ConfigIdentifier{
-					ID:    "example-1",
+					ID:   "example-1",
 					Path: fileName,
 				},
 				FriendlyName: "Sample Multi Example 1",
@@ -40,7 +40,7 @@ tags:
 			},
 			{
 				ConfigIdentifier: types.ConfigIdentifier{
-					ID:    "example-2",
+					ID:   "example-2",
 					Path: fileName,
 				},
 				FriendlyName: "Sample Multi Example 2",
@@ -93,7 +93,7 @@ func Test_ReadSingleConfigFromSingleFile(t *testing.T) {
 		expected :=
 			&types.ConfigBackup{
 				ConfigIdentifier: types.ConfigIdentifier{
-					ID:    fileName,
+					ID:   fileName,
 					Path: fileName,
 				},
 				FriendlyName: fileName,
@@ -145,7 +145,7 @@ func Test_ReadMultipleConfigsFromDirectory(t *testing.T) {
 			},
 			{
 				ConfigIdentifier: types.ConfigIdentifier{
-					ID:    "sample-single-id.yaml",
+					ID:   "sample-single-id.yaml",
 					Path: directoryName,
 				},
 				FriendlyName: "sample-single-id.yaml",
@@ -168,7 +168,7 @@ tags:
 			},
 			{
 				ConfigIdentifier: types.ConfigIdentifier{
-					ID:    "sample-single.yaml",
+					ID:   "sample-single.yaml",
 					Path: directoryName,
 				},
 				FriendlyName: "sample-single.yaml",

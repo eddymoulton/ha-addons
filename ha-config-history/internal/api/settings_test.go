@@ -282,10 +282,10 @@ func TestValidateConfigGroups(t *testing.T) {
 					GroupName: "Core Home Assistant",
 					Configs: []*types.ConfigBackupOptions{
 						{
-							Name:               "Configuration",
-							Path:               "configuration.yaml",
-							BackupType:         "single",
-							MaxBackupAgeDays:   intPtr(0),
+							Name:             "Configuration",
+							Path:             "configuration.yaml",
+							BackupType:       "single",
+							MaxBackupAgeDays: intPtr(0),
 						},
 					},
 				},

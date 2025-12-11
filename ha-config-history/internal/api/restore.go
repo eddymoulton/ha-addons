@@ -62,7 +62,6 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 			}
 		}
 
-
 		if configOptions == nil {
 			c.JSON(http.StatusNotFound, RestoreBackupResponse{
 				Success: false,
