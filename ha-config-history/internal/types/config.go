@@ -178,7 +178,7 @@ func LoadConfig(configPath string) *AppSettings {
 
 	appSettings := &AppSettings{
 		HomeAssistantConfigDir:  "/homeassistant",
-		BackupDir:               "/data/ha-config-history/backups",
+		BackupDir:               "/data/backups",
 		Port:                    ":40613",
 		CronSchedule:            new(string),
 		DefaultMaxBackups:       nil,

@@ -10,7 +10,7 @@ services:
       # Mount your Home Assistant config directory (needs read/write for restoring backups)
       - /path/to/your/homeassistant/config:/homeassistant
       # Mount backups directory (persists backups across container restarts)
-      - ./backups:/data/ha-config-history/backups
+      - ./path/to/your/ha-config-history/data:/data
     environment:
       - GIN_MODE=release
       - TZ=Australia/Melbourne
