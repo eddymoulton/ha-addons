@@ -3,4 +3,4 @@
 mkdir -p tmp/data
 
 ./scripts/build-frontend.sh && \
-CONFIG_PATH="tmp/data/config.json" go run ./main.go
+APPSETTINGS_PATH="tmp/data/appsettings.json" go run ./main.go

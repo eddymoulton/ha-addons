@@ -18,7 +18,7 @@ func (s *Server) startFileWatcher() {
 				slog.Debug("File watcher event", "file", event.Name, "event", event.Op)
 
 				s.State.Mu.RLock()
-				options, exists := s.State.FileLookup[event.Name]
+				optionsList, exists := s.State.FileLookup[event.Name]
 				s.State.Mu.RUnlock()
 
 				if !exists {
@@ -26,45 +26,41 @@ func (s *Server) startFileWatcher() {
 					continue
 				}
 
-				if options.BackupType == "single" {
-					backup, err := io.ReadSingleConfigFromSingleFilename(s.AppSettings.HomeAssistantConfigDir, options.Path, options)
-					if err != nil {
-						slog.Error("Error reading updated config from file", "file", event.Name, "error", err)
-						continue
+				for _, groupAndOptions := range optionsList {
+					options := groupAndOptions.Options
+					groupSlug := groupAndOptions.GroupSlug
+
+					if options.BackupType == "single" {
+						backup, err := io.ReadSingleConfigFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
+						if err != nil {
+							slog.Error("Error reading updated config from file", "file", event.Name, "error", err)
+							continue
+						}
+
+						s.queue <- NewBackupJob(groupSlug, options, backup)
 					}
 
-					s.queue <- BackupJob{
-						Options: options,
-						Backup:  backup,
-					}
-				}
+					if options.BackupType == "directory" {
+						filename := filepath.Base(event.Name)
+						fullDirectory := filepath.Dir(event.Name)
+						backup, err := io.ReadSingleConfigFromSingleFilename(fullDirectory, filename, options)
+						if err != nil {
+							slog.Error("Error reading updated config from file", "file", event.Name, "error", err)
+							continue
+						}
 
-				if options.BackupType == "directory" {
-					filename := filepath.Base(event.Name)
-					fullDirectory := filepath.Dir(event.Name)
-					backup, err := io.ReadSingleConfigFromSingleFilename(fullDirectory, filename, options)
-					if err != nil {
-						slog.Error("Error reading updated config from file", "file", event.Name, "error", err)
-						continue
+						s.queue <- NewBackupJob(groupSlug, options, backup)
 					}
 
-					s.queue <- BackupJob{
-						Options: options,
-						Backup:  backup,
-					}
-				}
+					if options.BackupType == "multiple" {
+						current, err := io.ReadMultipleConfigsFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
+						if err != nil {
+							slog.Error("Error reading updated multiple configs from file", "file", event.Name, "error", err)
+							continue
+						}
 
-				if options.BackupType == "multiple" {
-					current, err := io.ReadMultipleConfigsFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
-					if err != nil {
-						slog.Error("Error reading updated multiple configs from file", "file", event.Name, "error", err)
-						continue
-					}
-
-					for _, configBackup := range current {
-						s.queue <- BackupJob{
-							Options: options,
-							Backup:  configBackup,
+						for _, configBackup := range current {
+							s.queue <- NewBackupJob(groupSlug, options, configBackup)
 						}
 					}
 				}
@@ -79,7 +75,7 @@ func (s *Server) startFileWatcher() {
 	}()
 }
 
-func (s *Server) watchDirectoryForFile(path string, options *types.ConfigBackupOptions) error {
+func (s *Server) watchDirectoryForFile(groupSlug types.GroupSlug, path string, options *types.ConfigBackupOptions) error {
 	directory := filepath.Dir(path)
 	slog.Info("Adding directory to watcher for file", "directory", directory, "file", options.Path)
 
@@ -87,7 +83,7 @@ func (s *Server) watchDirectoryForFile(path string, options *types.ConfigBackupO
 		if existing == directory {
 			slog.Info("Directory already being watched", "directory", directory)
 			s.State.Mu.Lock()
-			s.State.FileLookup[path] = options
+			s.State.FileLookup.AddOrUpdate(path, groupSlug, options)
 			s.State.Mu.Unlock()
 			return nil
 		}
@@ -99,7 +95,7 @@ func (s *Server) watchDirectoryForFile(path string, options *types.ConfigBackupO
 	}
 
 	s.State.Mu.Lock()
-	s.State.FileLookup[path] = options
+	s.State.FileLookup.AddOrUpdate(path, groupSlug, options)
 	s.State.Mu.Unlock()
 	return err
 }

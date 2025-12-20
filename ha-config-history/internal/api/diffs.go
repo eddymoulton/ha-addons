@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"ha-config-history/internal/core"
 	"ha-config-history/internal/io"
+	"ha-config-history/internal/types"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -25,18 +26,19 @@ type BackupDiffResponse struct {
 
 func GetBackupDiffHandler(s *core.Server) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		path := c.Param("path")
+		groupSlug := types.GroupSlug(c.Param("group"))
+		configPath := c.Param("path")
 		id := c.Param("id")
 		leftFilename := c.Param("left")
 		rightFilename := c.Param("right")
 
-		leftContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, path, id, leftFilename)
+		leftContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, groupSlug, configPath, id, leftFilename)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Error loading left backup file"})
 			return
 		}
 
-		rightContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, path, id, rightFilename)
+		rightContent, err := io.GetConfigBackup(s.AppSettings.BackupDir, groupSlug, configPath, id, rightFilename)
 		if err != nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Error loading right backup file"})
 			return

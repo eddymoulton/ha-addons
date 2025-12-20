@@ -3,6 +3,7 @@ package io_test
 import (
 	"ha-config-history/internal/io"
 	"ha-config-history/internal/types"
+	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -15,7 +16,7 @@ func Test_ReadMultipleConfigsFromSingleFile(t *testing.T) {
 
 		expected := []*types.ConfigBackup{
 			{
-				ConfigIdentifier: types.ConfigIdentifier{
+				ConfigBackupIdentifier: types.ConfigBackupIdentifier{
 					ID:   "example-1",
 					Path: fileName,
 				},
@@ -39,7 +40,7 @@ tags:
 `),
 			},
 			{
-				ConfigIdentifier: types.ConfigIdentifier{
+				ConfigBackupIdentifier: types.ConfigBackupIdentifier{
 					ID:   "example-2",
 					Path: fileName,
 				},
@@ -66,7 +67,6 @@ tags:
 
 		configBackups, err := io.ReadMultipleConfigsFromSingleFile("test-data",
 			types.NewMultipleConfigBackupOptions(
-				"multiple",
 				fileName,
 				"id",
 				"alias",
@@ -92,7 +92,7 @@ func Test_ReadSingleConfigFromSingleFile(t *testing.T) {
 
 		expected :=
 			&types.ConfigBackup{
-				ConfigIdentifier: types.ConfigIdentifier{
+				ConfigBackupIdentifier: types.ConfigBackupIdentifier{
 					ID:   fileName,
 					Path: fileName,
 				},
@@ -115,10 +115,7 @@ tags:
 			}
 
 		configBackups, err := io.ReadSingleConfigFromSingleFile("test-data",
-			types.NewSingleConfigBackupOptions(
-				"multiple",
-				fileName,
-			))
+			types.NewSingleConfigBackupOptions(fileName))
 
 		if err != nil {
 			t.Fatalf("Expected no error, got: %v", err)
@@ -136,15 +133,15 @@ func Test_ReadMultipleConfigsFromDirectory(t *testing.T) {
 
 		expected := []*types.ConfigBackup{
 			{
-				ConfigIdentifier: types.ConfigIdentifier{ID: "random-file", Path: "sample-dir"},
-				FriendlyName:     "random-file",
-				Hash:             "M_oQwxaUJMNm2qj-MCmIQ_DBZ7w=",
-				BackupType:       "directory",
-				FilePath:         "test-data/sample-dir/random-file",
-				Blob:             []uint8("This isn't yaml"),
+				ConfigBackupIdentifier: types.ConfigBackupIdentifier{ID: "random-file", Path: "sample-dir"},
+				FriendlyName:           "random-file",
+				Hash:                   "M_oQwxaUJMNm2qj-MCmIQ_DBZ7w=",
+				BackupType:             "directory",
+				FilePath:               "test-data/sample-dir/random-file",
+				Blob:                   []uint8("This isn't yaml"),
 			},
 			{
-				ConfigIdentifier: types.ConfigIdentifier{
+				ConfigBackupIdentifier: types.ConfigBackupIdentifier{
 					ID:   "sample-single-id.yaml",
 					Path: directoryName,
 				},
@@ -167,7 +164,7 @@ tags:
 `),
 			},
 			{
-				ConfigIdentifier: types.ConfigIdentifier{
+				ConfigBackupIdentifier: types.ConfigBackupIdentifier{
 					ID:   "sample-single.yaml",
 					Path: directoryName,
 				},
@@ -193,7 +190,6 @@ tags:
 		configBackups, err := io.ReadMultipleConfigsFromDirectory(
 			"test-data",
 			types.NewDirectoryConfigBackupOptions(
-				"multiple",
 				directoryName,
 				[]string{},
 				[]string{},
@@ -218,7 +214,6 @@ tags:
 		configBackups, err := io.ReadMultipleConfigsFromDirectory(
 			"test-data",
 			types.NewDirectoryConfigBackupOptions(
-				"multiple",
 				directoryName,
 				[]string{"*.nonexistent"},
 				[]string{},
@@ -239,7 +234,6 @@ tags:
 		configBackups, err := io.ReadMultipleConfigsFromDirectory(
 			"test-data",
 			types.NewDirectoryConfigBackupOptions(
-				"multiple",
 				directoryName,
 				[]string{"*id.yaml"},
 				[]string{},
@@ -264,7 +258,6 @@ tags:
 		configBackups, err := io.ReadMultipleConfigsFromDirectory(
 			"test-data",
 			types.NewDirectoryConfigBackupOptions(
-				"multiple",
 				directoryName,
 				[]string{},
 				[]string{"*id.yaml", "random-file"},
@@ -289,7 +282,6 @@ tags:
 		configBackups, err := io.ReadMultipleConfigsFromDirectory(
 			"test-data",
 			types.NewDirectoryConfigBackupOptions(
-				"multiple",
 				directoryName,
 				[]string{"*.yaml"},
 				[]string{"*id.yaml"},
@@ -305,6 +297,96 @@ tags:
 
 		if configBackups[0].ID != "sample-single.yaml" {
 			t.Errorf("Expected config backup ID to be 'sample-single.yaml', got: %s", configBackups[0].ID)
+		}
+	})
+}
+
+// TestSanitizePath_SecurityVulnerabilities tests the SanitizePath function directly
+// to identify security vulnerabilities in path validation
+func TestSanitizePath(t *testing.T) {
+	t.Run("Security Vulnerabilities", func(t *testing.T) {
+		testCases := []struct {
+			name          string
+			path          string
+			shouldBlock   bool
+			vulnerability string
+		}{
+			{
+				name:        "Parent directory traversal",
+				path:        "../etc/passwd",
+				shouldBlock: true,
+			},
+			{
+				name:        "Multiple level traversal",
+				path:        "../../sensitive/data",
+				shouldBlock: true,
+			},
+			{
+				name:        "Windows-style traversal",
+				path:        "..\\..\\windows\\system32",
+				shouldBlock: true,
+			},
+			{
+				name:        "Mixed separator traversal",
+				path:        "../etc\\passwd",
+				shouldBlock: true,
+			},
+
+			{
+				name:          "Absolute path - VULNERABILITY",
+				path:          "/etc/passwd",
+				shouldBlock:   true,
+				vulnerability: "Absolute paths are not blocked - allows access to any system file",
+			},
+			{
+				name:          "Traversal in middle of path - VULNERABILITY",
+				path:          "configs/../secrets",
+				shouldBlock:   true,
+				vulnerability: "Path traversal in middle is not blocked - filepath.Clean removes '..' silently",
+			},
+			{
+				name:          "Absolute Windows path - VULNERABILITY",
+				path:          "C:\\Windows\\System32",
+				shouldBlock:   true,
+				vulnerability: "Windows absolute paths are not blocked",
+			},
+
+			{
+				name:        "Simple filename",
+				path:        "backup.yaml",
+				shouldBlock: false,
+			},
+			{
+				name:        "Path with hyphens",
+				path:        "my-config-backup",
+				shouldBlock: false,
+			},
+			{
+				name:        "Path with underscores",
+				path:        "config_backup_2024",
+				shouldBlock: false,
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				err := io.SanitizePath(tc.path)
+
+				if tc.shouldBlock {
+					if err == nil {
+						if tc.vulnerability != "" {
+							t.Errorf("SECURITY VULNERABILITY: Path '%s' was not blocked.\n  Issue: %s\n  Cleaned path: %s",
+								tc.path, tc.vulnerability, filepath.Clean(tc.path))
+						} else {
+							t.Errorf("Expected path '%s' to be blocked, but it was allowed", tc.path)
+						}
+					}
+				} else {
+					if err != nil {
+						t.Errorf("Expected path '%s' to be allowed, but it was blocked: %v", tc.path, err)
+					}
+				}
+			})
 		}
 	})
 }

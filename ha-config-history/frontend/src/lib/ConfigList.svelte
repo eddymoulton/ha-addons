@@ -17,14 +17,20 @@
   type ConfigListProps = {
     onConfigClick: (config: ConfigMetadata) => void;
     selectedConfig: ConfigMetadata | null;
+    selectedGroupName: string;
+    onGroupChange: (groupName: string) => void;
   };
 
-  let { onConfigClick, selectedConfig }: ConfigListProps = $props();
+  let {
+    onConfigClick,
+    selectedConfig,
+    selectedGroupName,
+    onGroupChange,
+  }: ConfigListProps = $props();
 
   let groups: Record<string, ConfigMetadata[]> = $state({});
   let loading = $state(false);
   let error: string | null = $state(null);
-  let selectedGroupName: string = $state("none");
   let searchQuery: string = $state("");
   let configToDelete: ConfigMetadata | null = $state(null);
   let showDeleteConfirm = $state(false);
@@ -60,7 +66,7 @@
       const configResponse = await api.getConfigs();
       groups = configResponse.groups;
       if (Object.keys(groups).length > 0) {
-        selectedGroupName = Object.keys(groups)[0];
+        onGroupChange(Object.keys(groups)[0]);
       }
     } catch (err) {
       error = getErrorMessage(err, "Failed to load configs");
@@ -89,7 +95,11 @@
 
     deleting = true;
     try {
-      await api.deleteAllBackups(configToDelete.path, configToDelete.id);
+      await api.deleteAllBackups(
+        selectedGroupName,
+        configToDelete.path,
+        configToDelete.id
+      );
 
       // If the deleted config was selected, clear selection
       if (selectedConfig?.id === configToDelete.id) {
@@ -132,6 +142,8 @@
           id="group-filter"
           bind:value={selectedGroupName}
           style="group-select"
+          onchange={(e: Event) =>
+            e.target && onGroupChange((e.target as HTMLSelectElement).value)}
         >
           {#snippet children()}
             {#each Object.keys(groups) as group}

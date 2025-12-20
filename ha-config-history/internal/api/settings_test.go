@@ -90,36 +90,35 @@ func TestValidateConfigGroups(t *testing.T) {
 		{
 			name: "valid single group",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Core Home Assistant",
-					Configs: []*types.ConfigBackupOptions{
-						{Name: "Configuration", Path: "configuration.yaml", BackupType: "single"},
+				types.NewConfigBackupOptionGroup(
+					"Core Home Assistant",
+					[]*types.ConfigBackupOptions{
+						{Path: "configuration.yaml", BackupType: "single"},
 					},
-				},
+				),
 			},
 			expectErr: false,
 		},
 		{
 			name: "valid multiple groups",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Core Home Assistant",
-					Configs: []*types.ConfigBackupOptions{
-						{Name: "Configuration", Path: "configuration.yaml", BackupType: "single"},
+				types.NewConfigBackupOptionGroup(
+					"Core Home Assistant",
+					[]*types.ConfigBackupOptions{
+						{Path: "configuration.yaml", BackupType: "single"},
 					},
-				},
-				{
-					GroupName: "Automations",
-					Configs: []*types.ConfigBackupOptions{
+				),
+				types.NewConfigBackupOptionGroup(
+					"Automations",
+					[]*types.ConfigBackupOptions{
 						{
-							Name:             "Automations",
 							Path:             "automations.yaml",
 							BackupType:       "multiple",
 							IdNode:           stringPtr("id"),
 							FriendlyNameNode: stringPtr("alias"),
 						},
 					},
-				},
+				),
 			},
 			expectErr: false,
 		},
@@ -134,9 +133,9 @@ func TestValidateConfigGroups(t *testing.T) {
 			name: "invalid group name",
 			configGroups: []*types.ConfigBackupOptionGroup{
 				{
-					GroupName: "admin",
+					Name: "admin",
 					Configs: []*types.ConfigBackupOptions{
-						{Name: "Configuration", Path: "configuration.yaml", BackupType: "single"},
+						{Path: "configuration.yaml", BackupType: "single"},
 					},
 				},
 			},
@@ -145,132 +144,116 @@ func TestValidateConfigGroups(t *testing.T) {
 		{
 			name: "duplicate group names",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Core Home Assistant",
-					Configs: []*types.ConfigBackupOptions{
-						{Name: "Configuration", Path: "configuration.yaml", BackupType: "single"},
+				types.NewConfigBackupOptionGroup(
+					"Core Home Assistant",
+					[]*types.ConfigBackupOptions{
+						{Path: "configuration.yaml", BackupType: "single"},
 					},
-				},
-				{
-					GroupName: "Core Home Assistant",
-					Configs: []*types.ConfigBackupOptions{
-						{Name: "Secrets", Path: "secrets.yaml", BackupType: "single"},
+				),
+				types.NewConfigBackupOptionGroup(
+					"Core Home Assistant",
+					[]*types.ConfigBackupOptions{
+						{Path: "secrets.yaml", BackupType: "single"},
 					},
-				},
+				),
 			},
 			expectErr: true,
 		},
 		{
 			name: "empty group configs",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Empty Group",
-					Configs:   []*types.ConfigBackupOptions{},
-				},
+				types.NewConfigBackupOptionGroup(
+					"Empty Group",
+					[]*types.ConfigBackupOptions{},
+				),
 			},
 			expectErr: true,
 		},
 		{
 			name: "nil config",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Core Home Assistant",
-					Configs: []*types.ConfigBackupOptions{
+				types.NewConfigBackupOptionGroup(
+					"Core Home Assistant",
+					[]*types.ConfigBackupOptions{
 						nil,
 					},
-				},
+				),
 			},
 			expectErr: true,
 		},
 		{
 			name: "invalid backup type",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Core Home Assistant",
-					Configs: []*types.ConfigBackupOptions{
-						{Name: "Configuration", Path: "configuration.yaml", BackupType: "invalid"},
+				types.NewConfigBackupOptionGroup(
+					"Core Home Assistant",
+					[]*types.ConfigBackupOptions{
+						{Path: "configuration.yaml", BackupType: "invalid"},
 					},
-				},
-			},
-			expectErr: true,
-		},
-		{
-			name: "empty config name",
-			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Core Home Assistant",
-					Configs: []*types.ConfigBackupOptions{
-						{Name: "", Path: "configuration.yaml", BackupType: "single"},
-					},
-				},
+				),
 			},
 			expectErr: true,
 		},
 		{
 			name: "multiple backup type missing idNode",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Automations",
-					Configs: []*types.ConfigBackupOptions{
+				types.NewConfigBackupOptionGroup(
+					"Automations",
+					[]*types.ConfigBackupOptions{
 						{
-							Name:             "Automations",
 							Path:             "automations.yaml",
 							BackupType:       "multiple",
 							FriendlyNameNode: stringPtr("alias"),
 						},
 					},
-				},
+				),
 			},
 			expectErr: true,
 		},
 		{
 			name: "multiple backup type missing friendlyNameNode",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Automations",
-					Configs: []*types.ConfigBackupOptions{
+				types.NewConfigBackupOptionGroup(
+					"Automations",
+					[]*types.ConfigBackupOptions{
 						{
-							Name:       "Automations",
 							Path:       "automations.yaml",
 							BackupType: "multiple",
 							IdNode:     stringPtr("id"),
 						},
 					},
-				},
+				),
 			},
 			expectErr: true,
 		},
 		{
 			name: "invalid maxBackups",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Core Home Assistant",
-					Configs: []*types.ConfigBackupOptions{
+				types.NewConfigBackupOptionGroup(
+					"Core Home Assistant",
+					[]*types.ConfigBackupOptions{
 						{
-							Name:       "Configuration",
 							Path:       "configuration.yaml",
 							BackupType: "single",
 							MaxBackups: intPtr(0),
 						},
 					},
-				},
+				),
 			},
 			expectErr: true,
 		},
 		{
 			name: "invalid maxBackupAgeDays",
 			configGroups: []*types.ConfigBackupOptionGroup{
-				{
-					GroupName: "Core Home Assistant",
-					Configs: []*types.ConfigBackupOptions{
+				types.NewConfigBackupOptionGroup(
+					"Core Home Assistant",
+					[]*types.ConfigBackupOptions{
 						{
-							Name:             "Configuration",
 							Path:             "configuration.yaml",
 							BackupType:       "single",
 							MaxBackupAgeDays: intPtr(0),
 						},
 					},
-				},
+				),
 			},
 			expectErr: true,
 		},

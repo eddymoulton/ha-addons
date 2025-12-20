@@ -13,6 +13,7 @@
   import ConfirmationModal from "./components/ConfirmationModal.svelte";
 
   type Props = {
+    selectedGroupName: string;
     config: ConfigMetadata | null;
     onBackupClick: (backup: BackupInfo, allBackups: BackupInfo[]) => void;
     selectedBackup: BackupInfo | null;
@@ -20,6 +21,7 @@
   };
 
   let {
+    selectedGroupName,
     config = null,
     onBackupClick,
     selectedBackup = null,
@@ -55,7 +57,11 @@
     error = null;
 
     try {
-      backups = await api.getConfigBackups(config.path, config.id);
+      backups = await api.getConfigBackups(
+        selectedGroupName,
+        config.path,
+        config.id
+      );
     } catch (err) {
       error = getErrorMessage(err, "Failed to load backups");
     } finally {
@@ -83,7 +89,12 @@
 
     deleting = true;
     try {
-      await api.deleteBackup(config.path, config.id, backupToDelete.filename);
+      await api.deleteBackup(
+        selectedGroupName,
+        config.path,
+        config.id,
+        backupToDelete.filename
+      );
 
       // Reload backups after successful deletion
       await loadBackups();
