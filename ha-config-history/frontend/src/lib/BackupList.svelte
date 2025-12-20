@@ -126,7 +126,7 @@
 {#snippet rightContent()}
   {#if config}
     <Button
-      label="Refresh"
+      label=""
       variant="outlined"
       size="small"
       onclick={loadBackups}

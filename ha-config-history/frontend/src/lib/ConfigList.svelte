@@ -152,7 +152,7 @@
           {/snippet}
         </FormSelect>
         <Button
-          label="Refresh"
+          label=""
           variant="outlined"
           size="small"
           onclick={loadConfigs}
