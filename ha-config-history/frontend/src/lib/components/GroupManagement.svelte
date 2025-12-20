@@ -89,10 +89,6 @@
     config: ConfigBackupOptions,
     groupIndex: number
   ): string | null {
-    if (!config.name?.trim()) {
-      return "Config name cannot be empty";
-    }
-
     const pathError = validateConfigPath(config.path || "");
     if (pathError) {
       return pathError;
@@ -214,7 +210,6 @@
       onToggleSection("groups");
 
       const newConfig: ConfigBackupOptions = {
-        name: "",
         path: "",
         backupType: "multiple",
         idNode: "id",
@@ -246,11 +241,7 @@
     }
 
     const config = group.configs[configIndex];
-    if (
-      !confirm(
-        `Remove config "${config.name || "(Unnamed)"}" from group? This cannot be undone.`
-      )
-    ) {
+    if (!confirm(`Remove config from group? This cannot be undone.`)) {
       return;
     }
 
@@ -332,7 +323,6 @@
       const configToDuplicate = group.configs[configIndex];
       const duplicated: ConfigBackupOptions = {
         ...configToDuplicate,
-        name: `${configToDuplicate.name} (copy)`,
       };
 
       const validation = validateConfigInGroup(duplicated, groupIndex);
@@ -449,7 +439,6 @@
   <div class="config-item config-in-group">
     <div class="config-header">
       <div class="config-title">
-        <strong>{config.name || "(Unnamed)"}</strong>
         <span class="config-type">{config.backupType}</span>
         <span class="config-path">{config.path}</span>
       </div>
@@ -502,12 +491,6 @@
 
     <div class="config-details">
       <div class="config-inline-form">
-        <FormInput
-          type="text"
-          bind:value={config.name}
-          placeholder="Config name"
-          oninput={() => handleConfigChange(config, groupIndex, "name")}
-        />
         <FormInput
           type="text"
           bind:value={config.path}
