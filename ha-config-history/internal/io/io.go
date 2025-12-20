@@ -332,7 +332,7 @@ func CleanupAndUpdateMetadata(
 		}
 	}
 
-	metadataPath := createMetadataPath(backupDirectory, groupSlug, configBackup.Path, "??")
+	metadataPath := createMetadataPath(backupDirectory, groupSlug, configBackup.Path, configBackup.ID)
 	metadata := types.NewConfigBackupSummary(configBackup, backupsCount, backupsSize, backupOptions.BackupType)
 	metadataBlob, err := json.Marshal(metadata)
 	if err != nil {
@@ -543,7 +543,7 @@ func UpdateMetadataAfterDeletion(backupFolder string, groupSlug types.GroupSlug,
 
 	// If no backups remain, delete metadata file and directory
 	if backupsCount == 0 {
-		metadataPath := createMetadataPath(backupDirectory, groupSlug, configPath, "??")
+		metadataPath := createMetadataPath(backupDirectory, groupSlug, configPath, id)
 		if err := os.Remove(metadataPath); err != nil && !os.IsNotExist(err) {
 			slog.Warn("Failed to remove metadata file", "path", metadataPath, "error", err)
 		}
@@ -557,7 +557,7 @@ func UpdateMetadataAfterDeletion(backupFolder string, groupSlug types.GroupSlug,
 	}
 
 	// Read existing metadata to preserve other fields
-	metadataPath := createMetadataPath(backupDirectory, groupSlug, configPath, "??")
+	metadataPath := createMetadataPath(backupDirectory, groupSlug, configPath, id)
 	metadataBlob, err := os.ReadFile(metadataPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read metadata file %s: %w", metadataPath, err)
