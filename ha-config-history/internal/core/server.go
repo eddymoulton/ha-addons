@@ -97,10 +97,7 @@ func (s *Server) Start() {
 func (s *Server) WaitForInactive() {
 	time.Sleep(1 * time.Second)
 
-	for {
-		if len(s.queue) == 0 && !s.processingFile {
-			break
-		}
+	for len(s.queue) != 0 || s.processingFile {
 		time.Sleep(100 * time.Millisecond)
 	}
 }

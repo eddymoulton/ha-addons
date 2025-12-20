@@ -573,12 +573,6 @@ func (env *testEnvironment) assertContains(content, substring string) {
 	}
 }
 
-func (env *testEnvironment) assertNotContains(content, substring string) {
-	if strings.Contains(content, substring) {
-		env.t.Errorf("Expected content not to contain %q, but it did", substring)
-	}
-}
-
 func (env *testEnvironment) assertValidYAML(content []byte) {
 	var yamlData interface{}
 	if err := yaml.Unmarshal(content, &yamlData); err != nil {

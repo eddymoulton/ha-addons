@@ -7,7 +7,6 @@ import (
 	"testing"
 )
 
-
 func TestAppSettingsMigration(t *testing.T) {
 	// Create temporary directory for test config files
 	tempDir := t.TempDir()
@@ -177,5 +176,3 @@ func TestSaveAppSettings(t *testing.T) {
 		t.Error("ConfigGroups count mismatch after save/load")
 	}
 }
-
-
