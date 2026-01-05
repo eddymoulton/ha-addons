@@ -63,7 +63,7 @@ jobs:
           ls -la ../
 
       - name: Test Report
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: (success() || failure()) && (github.event_name == 'release' || steps.changed-files-specific.outputs.any_changed == 'true')
         with:
           name: Test Results
