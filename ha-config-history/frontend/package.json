@@ -22,9 +22,6 @@
 		"vite": "^7.1.10"
 	},
 	"dependencies": {
-		"@monaco-editor/loader": "^1.6.1",
-		"@sveltejs/adapter-static": "^3.0.10",
-		"diff2html": "^3.4.52",
-		"monaco-editor": "^0.54.0"
+		"@sveltejs/adapter-static": "^3.0.10"
 	}
 }
