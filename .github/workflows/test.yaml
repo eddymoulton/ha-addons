@@ -24,7 +24,7 @@ jobs:
 
       - name: Check for significant changes
         id: changed-files-specific
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v47
         with:
           files_ignore: |
             .release-please-manifest.json
