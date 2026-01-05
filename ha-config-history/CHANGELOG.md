@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.3.0](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.2.2...ha-config-history-v1.3.0) (2026-01-05)
+
+
+### Features
+
+* add config groups ([#11](https://github.com/eddymoulton/ha-addons/issues/11)) ([bf49a95](https://github.com/eddymoulton/ha-addons/commit/bf49a95e9e452c17b0e4358ed587fd902445974f))
+* add more default configs ([bc6c444](https://github.com/eddymoulton/ha-addons/commit/bc6c444dc278c98e8ff1412ad377348688b8141d))
+
+
+### Bug Fixes
+
+* allow duplicate paths across groups ([6cf05ab](https://github.com/eddymoulton/ha-addons/commit/6cf05ab2e0d85f5ded83437c83562217b39fdb7c))
+* close backups column on group change ([db7ace0](https://github.com/eddymoulton/ha-addons/commit/db7ace09a3eb48204e7f8cc9c5d493e855a1605e))
+* group configuration ([#13](https://github.com/eddymoulton/ha-addons/issues/13)) ([8653ad3](https://github.com/eddymoulton/ha-addons/commit/8653ad3600a3b8a0e42fa6fa6f3d20cfa8df94f9))
+* make config path customizable and relax validation ([bc2c590](https://github.com/eddymoulton/ha-addons/commit/bc2c590d387b2d55c98e27cac892c123e4098767))
+* remove refresh text from buttons ([e3f98f2](https://github.com/eddymoulton/ha-addons/commit/e3f98f2b5dd0614e35755b480e769b90ebdd2cad))
+* remove unused frontend deps ([#34](https://github.com/eddymoulton/ha-addons/issues/34)) ([66dfb97](https://github.com/eddymoulton/ha-addons/commit/66dfb9768da567642fc1d2af92a8166fa234b0a0))
+
 ## [1.2.2](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.2.1...ha-config-history-v1.2.2) (2025-12-04)
 
 
