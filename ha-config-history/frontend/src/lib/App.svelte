@@ -21,8 +21,13 @@
   let configColumnWidth = $state(DEFAULT_CONFIG_WIDTH);
   let backupColumnWidth = $state(DEFAULT_BACKUP_WIDTH);
 
+  async function handleGroupChange(name: string) {
+    selectedGroupName = name;
+    selectedConfig = null;
+    selectedBackup = null;
+  }
+
   async function handleConfigClick(config: ConfigMetadata) {
-    console.log("Config clicked:", config);
     selectedConfig = config;
     selectedBackup = null;
     allBackups = [];
@@ -102,7 +107,7 @@
         onConfigClick={handleConfigClick}
         {selectedConfig}
         {selectedGroupName}
-        onGroupChange={(name) => (selectedGroupName = name)}
+        onGroupChange={handleGroupChange}
       />
     </div>
 

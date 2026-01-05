@@ -13,18 +13,18 @@
   import ConfirmationModal from "./components/ConfirmationModal.svelte";
 
   type Props = {
-    selectedGroupName: string;
     config: ConfigMetadata | null;
-    onBackupClick: (backup: BackupInfo, allBackups: BackupInfo[]) => void;
+    selectedGroupName: string;
     selectedBackup: BackupInfo | null;
+    onBackupClick: (backup: BackupInfo, allBackups: BackupInfo[]) => void;
     onBack?: (() => void) | undefined;
   };
 
   let {
-    selectedGroupName,
     config = null,
-    onBackupClick,
+    selectedGroupName,
     selectedBackup = null,
+    onBackupClick,
     onBack = undefined,
   }: Props = $props();
 
