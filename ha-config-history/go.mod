@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.10.1
 	github.com/google/go-cmp v0.7.0
 	github.com/hexops/gotextdiff v1.0.3
-	github.com/robfig/cron/v3 v3.0.0
+	github.com/robfig/cron/v3 v3.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )
 
