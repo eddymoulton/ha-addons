@@ -26,9 +26,11 @@ export interface BackupDiffResponse {
 
 export type ComparisonMode = "previous" | "current" | "two-backups";
 
+export type BackupType = "multiple" | "single" | "directory";
+
 export interface ConfigBackupOptions {
   path: string;
-  backupType: "multiple" | "single" | "directory";
+  backupType: BackupType;
   maxBackups?: number;
   maxBackupAgeDays?: number;
   idNode?: string;

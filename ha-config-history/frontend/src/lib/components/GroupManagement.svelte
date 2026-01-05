@@ -3,6 +3,7 @@
     AppSettings,
     ConfigBackupOptions,
     ConfigBackupOptionGroup,
+    BackupType,
   } from "../types";
   import IconButton from "./IconButton.svelte";
   import Button from "./Button.svelte";
@@ -140,6 +141,17 @@
   function clearErrors() {
     groupError = null;
     configError = null;
+  }
+
+  function getFriendlyBackupTypeName(backupType: BackupType): string {
+    switch (backupType) {
+      case "multiple":
+        return "List of YAML Configurations";
+      case "directory":
+        return "Directory of Files";
+      case "single":
+        return "Single File";
+    }
   }
 
   function addGroup() {
@@ -438,10 +450,7 @@
 )}
   <div class="config-item config-in-group">
     <div class="config-header">
-      <div class="config-title">
-        <span class="config-type">{config.backupType}</span>
-        <span class="config-path">{config.path}</span>
-      </div>
+      <div class="config-title"></div>
       <div class="config-actions">
         {#if settings.configGroups.length > 1}
           <FormSelect
@@ -471,7 +480,7 @@
         <IconButton
           icon="⧉"
           variant="outlined"
-          size="small"
+          size="large"
           type="button"
           onclick={() => duplicateConfigInGroup(groupIndex, configIndex)}
           title="Duplicate"
@@ -480,7 +489,7 @@
         <IconButton
           icon="×"
           variant="danger"
-          size="small"
+          size="large"
           type="button"
           onclick={() => removeConfigFromGroup(groupIndex, configIndex)}
           title="Remove from group"
@@ -491,77 +500,137 @@
 
     <div class="config-details">
       <div class="config-inline-form">
-        <FormInput
-          type="text"
-          bind:value={config.path}
-          placeholder="Path"
-          oninput={() => handleConfigChange(config, groupIndex, "path")}
-        />
-        <FormSelect
-          bind:value={config.backupType}
-          onchange={() => handleConfigChange(config, groupIndex, "backupType")}
+        <FormGroup
+          label="Path"
+          for={groupIndex + "." + configIndex + ".path"}
+          weight="light"
         >
-          <option value="multiple">Multiple</option>
-          <option value="single">Single</option>
-          <option value="directory">Directory</option>
-        </FormSelect>
+          <FormInput
+            id={groupIndex + "." + configIndex + ".path"}
+            type="text"
+            bind:value={config.path}
+            oninput={() => handleConfigChange(config, groupIndex, "path")}
+          />
+        </FormGroup>
+        <FormGroup
+          label="Type"
+          for={groupIndex + "." + configIndex + ".type"}
+          weight="light"
+        >
+          <FormSelect
+            id={groupIndex + "." + configIndex + ".type"}
+            bind:value={config.backupType}
+            onchange={() =>
+              handleConfigChange(config, groupIndex, "backupType")}
+          >
+            <option value="multiple">
+              {getFriendlyBackupTypeName("multiple")}
+            </option>
+            <option value="single">
+              {getFriendlyBackupTypeName("single")}
+            </option>
+            <option value="directory">
+              {getFriendlyBackupTypeName("directory")}
+            </option>
+          </FormSelect>
+        </FormGroup>
       </div>
 
       {#if config.backupType === "multiple"}
         <div class="config-inline-form">
-          <FormInput
-            type="text"
-            bind:value={config.idNode}
-            placeholder="ID node (e.g., id)"
-          />
-          <FormInput
-            type="text"
-            bind:value={config.friendlyNameNode}
-            placeholder="Name node (e.g., alias)"
-          />
+          <FormGroup
+            label="ID Node"
+            for={groupIndex + "." + configIndex + ".idNode"}
+            weight="light"
+          >
+            <FormInput
+              id={groupIndex + "." + configIndex + ".idNode"}
+              type="text"
+              bind:value={config.idNode}
+              placeholder="id"
+            />
+          </FormGroup>
+          <FormGroup
+            label="Friendly Name Node"
+            for={groupIndex + "." + configIndex + ".friendlyNameNode"}
+            weight="light"
+          >
+            <FormInput
+              id={groupIndex + "." + configIndex + ".friendlyNameNode"}
+              type="text"
+              bind:value={config.friendlyNameNode}
+              placeholder="alias"
+            />
+          </FormGroup>
         </div>
       {/if}
 
       {#if config.backupType === "directory"}
         <div class="config-inline-form">
-          <FormInput
-            type="text"
-            value={config.includeFilePatterns?.join(", ") || ""}
-            oninput={(e) => {
-              const value = e.currentTarget.value.trim();
-              config.includeFilePatterns = value
-                ? value.split(",").map((p) => p.trim())
-                : [];
-            }}
-            placeholder="Include patterns (*.yaml, *.json)"
-          />
-          <FormInput
-            type="text"
-            value={config.excludeFilePatterns?.join(", ") || ""}
-            oninput={(e) => {
-              const value = e.currentTarget.value.trim();
-              config.excludeFilePatterns = value
-                ? value.split(",").map((p) => p.trim())
-                : [];
-            }}
-            placeholder="Exclude patterns (*.backup)"
-          />
+          <FormGroup
+            label="Include patterns"
+            for={groupIndex + "." + configIndex + ".include"}
+            weight="light"
+          >
+            <FormInput
+              id={groupIndex + "." + configIndex + ".include"}
+              type="text"
+              value={config.includeFilePatterns?.join(", ") || ""}
+              oninput={(e) => {
+                const value = e.currentTarget.value.trim();
+                config.includeFilePatterns = value
+                  ? value.split(",").map((p) => p.trim())
+                  : [];
+              }}
+              placeholder="*.yaml, *.json"
+            />
+          </FormGroup>
+          <FormGroup
+            label="Exclude Patterns"
+            for={groupIndex + "." + configIndex + ".exclude"}
+            weight="light"
+          >
+            <FormInput
+              id={groupIndex + "." + configIndex + ".exclude"}
+              type="text"
+              value={config.excludeFilePatterns?.join(", ") || ""}
+              oninput={(e) => {
+                const value = e.currentTarget.value.trim();
+                config.excludeFilePatterns = value
+                  ? value.split(",").map((p) => p.trim())
+                  : [];
+              }}
+              placeholder="*.backup, secrets"
+            />
+          </FormGroup>
         </div>
       {/if}
 
       <div class="config-inline-form">
-        <FormInput
-          type="number"
-          bind:value={config.maxBackups}
-          placeholder="Max backups (default)"
-          min="1"
-        />
-        <FormInput
-          type="number"
-          bind:value={config.maxBackupAgeDays}
-          placeholder="Max age days (default)"
-          min="1"
-        />
+        <FormGroup
+          label="Max backups"
+          for={groupIndex + "." + configIndex + ".maxBackups"}
+          weight="light"
+        >
+          <FormInput
+            id={groupIndex + "." + configIndex + ".maxBackups"}
+            type="number"
+            bind:value={config.maxBackups}
+            min="1"
+          />
+        </FormGroup>
+        <FormGroup
+          label="Max Age in Days"
+          for={groupIndex + "." + configIndex + ".maxBackupAgeDays"}
+          weight="light"
+        >
+          <FormInput
+            id={groupIndex + "." + configIndex + ".maxBackupAgeDays"}
+            type="number"
+            bind:value={config.maxBackupAgeDays}
+            min="1"
+          />
+        </FormGroup>
       </div>
     </div>
   </div>
@@ -714,15 +783,6 @@
     color: var(--primary-color);
   }
 
-  .config-type {
-    background: var(--ha-card-border-color);
-    padding: 0.2rem 0.6rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    color: var(--secondary-text-color);
-    text-transform: uppercase;
-  }
-
   .config-actions {
     display: flex;
     gap: 0.5rem;
@@ -730,8 +790,6 @@
 
   .config-details {
     margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--ha-card-border-color);
   }
 
   .add-group-controls {
@@ -832,15 +890,6 @@
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 0.5rem;
     margin-bottom: 0.75rem;
-  }
-
-  .config-path {
-    background: var(--ha-card-border-color);
-    padding: 0.1rem 0.4rem;
-    border-radius: 8px;
-    font-size: 0.7rem;
-    color: var(--secondary-text-color);
-    font-family: monospace;
   }
 
   @media (max-width: 768px) {

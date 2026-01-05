@@ -1,15 +1,22 @@
 <script lang="ts">
   interface FormGroupProps {
-    label?: string;
-    for?: string;
+    label: string;
+    for: string;
+    weight?: "light" | "heavy";
     helpText?: string;
-    children?: any;
+    children: any;
   }
 
-  let { label, for: forId, helpText, children }: FormGroupProps = $props();
+  let {
+    label,
+    for: forId,
+    weight = "heavy",
+    helpText,
+    children,
+  }: FormGroupProps = $props();
 </script>
 
-<div class="form-group">
+<div class="form-group form-group-{weight}">
   {#if label}
     <label for={forId}>
       {label}
@@ -22,16 +29,23 @@
 </div>
 
 <style>
-  .form-group {
+  .form-group-heavy {
     margin-bottom: 1rem;
   }
 
-  .form-group label {
+  .form-group.form-group-heavy label {
     display: block;
     margin-bottom: 0.5rem;
     color: var(--primary-text-color);
     font-size: 0.9rem;
     font-weight: 500;
+  }
+
+  .form-group.form-group-light label {
+    display: block;
+    color: var(--secondary-text-color);
+    font-size: 0.7rem;
+    font-weight: 400;
   }
 
   .help-text {
