@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.1](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.3.0...ha-config-history-v1.3.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* allow duplicate paths across groups ([6cf05ab](https://github.com/eddymoulton/ha-addons/commit/6cf05ab2e0d85f5ded83437c83562217b39fdb7c))
+* close backups column on group change ([db7ace0](https://github.com/eddymoulton/ha-addons/commit/db7ace09a3eb48204e7f8cc9c5d493e855a1605e))
+* **deps:** update module github.com/gin-gonic/gin to v1.11.0 ([#28](https://github.com/eddymoulton/ha-addons/issues/28)) ([9920390](https://github.com/eddymoulton/ha-addons/commit/992039004a293d1dfcf36707c28e851fabaef55c))
+* **deps:** update module github.com/robfig/cron/v3 to v3.0.1 ([#20](https://github.com/eddymoulton/ha-addons/issues/20)) ([1070f0d](https://github.com/eddymoulton/ha-addons/commit/1070f0d699aed476fc8ce2a4bdd9b42132bd6491))
+* group configuration ([#13](https://github.com/eddymoulton/ha-addons/issues/13)) ([8653ad3](https://github.com/eddymoulton/ha-addons/commit/8653ad3600a3b8a0e42fa6fa6f3d20cfa8df94f9))
+* make config path customizable and relax validation ([bc2c590](https://github.com/eddymoulton/ha-addons/commit/bc2c590d387b2d55c98e27cac892c123e4098767))
+* remove refresh text from buttons ([e3f98f2](https://github.com/eddymoulton/ha-addons/commit/e3f98f2b5dd0614e35755b480e769b90ebdd2cad))
+* remove unused frontend deps ([#34](https://github.com/eddymoulton/ha-addons/issues/34)) ([66dfb97](https://github.com/eddymoulton/ha-addons/commit/66dfb9768da567642fc1d2af92a8166fa234b0a0))
+* tidy group settings ([c6accb1](https://github.com/eddymoulton/ha-addons/commit/c6accb1270f86ceeb5fba7017bfd31864523cc21))
+
 ## [1.3.0](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.2.2...ha-config-history-v1.3.0) (2026-01-05)
 
 
