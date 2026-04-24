@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.2](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.3.1...ha-config-history-v1.3.2) (2026-04-24)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/gin-contrib/static to v1.1.6 ([#60](https://github.com/eddymoulton/ha-addons/issues/60)) ([319132a](https://github.com/eddymoulton/ha-addons/commit/319132abc4f7392ed16eab276400479c65a417cd))
+
 ## [1.3.1](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.3.0...ha-config-history-v1.3.1) (2026-02-05)
 
 
