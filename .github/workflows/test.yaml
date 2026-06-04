@@ -20,11 +20,11 @@ jobs:
       checks: write
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
 
       - name: Check for significant changes
         id: changed-files-specific
-        uses: tj-actions/changed-files@v47
+        uses: tj-actions/changed-files@24d32ffd492484c1d75e0c0b894501ddb9d30d62 # v47
         with:
           files_ignore: |
             .release-please-manifest.json
@@ -34,7 +34,7 @@ jobs:
 
       - name: Set up Go
         if: github.event_name == 'release' || steps.changed-files-specific.outputs.any_changed == 'true'
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
         with:
           go-version: 1.25
 
@@ -63,7 +63,7 @@ jobs:
           ls -la ../
 
       - name: Test Report
-        uses: dorny/test-reporter@v2
+        uses: dorny/test-reporter@df6247429542221bc30d46a036ee47af1102c451 # v2
         if: (success() || failure()) && (github.event_name == 'release' || steps.changed-files-specific.outputs.any_changed == 'true')
         with:
           name: Test Results
