@@ -95,7 +95,7 @@
       return pathError;
     }
 
-    if (!["single", "multiple", "directory"].includes(config.backupType)) {
+    if (!["single", "multiple", "directory", "keyed"].includes(config.backupType)) {
       return "Invalid backup type";
     }
 
@@ -105,6 +105,12 @@
       }
       if (!config.friendlyNameNode?.trim()) {
         return "Friendly name node is required for multiple backup type";
+      }
+    }
+
+    if (config.backupType === "keyed") {
+      if (config.friendlyNameNode !== undefined && !config.friendlyNameNode.trim()) {
+        return "Friendly name node cannot be only whitespace";
       }
     }
 
@@ -151,6 +157,8 @@
         return "Directory of Files";
       case "single":
         return "Single File";
+      case "keyed":
+        return "Keyed YAML Map";
     }
   }
 
@@ -360,6 +368,17 @@
   ) {
     clearErrors();
 
+    if (field === "backupType") {
+      // Clear type-specific fields that are stale for the newly selected type.
+      // Reassign the whole config object so Svelte 5 reactivity picks up the mutation.
+      if (config.backupType !== "multiple") {
+        config.idNode = undefined;
+      }
+      if (config.backupType !== "multiple" && config.backupType !== "keyed") {
+        config.friendlyNameNode = undefined;
+      }
+    }
+
     if (field === "path" || field === "name" || field === "backupType") {
       const validation = validateConfigInGroup(config, groupIndex);
       if (validation) {
@@ -532,6 +551,9 @@
             <option value="directory">
               {getFriendlyBackupTypeName("directory")}
             </option>
+            <option value="keyed">
+              {getFriendlyBackupTypeName("keyed")}
+            </option>
           </FormSelect>
         </FormGroup>
       </div>
@@ -550,6 +572,23 @@
               placeholder="id"
             />
           </FormGroup>
+          <FormGroup
+            label="Friendly Name Node"
+            for={groupIndex + "." + configIndex + ".friendlyNameNode"}
+            weight="light"
+          >
+            <FormInput
+              id={groupIndex + "." + configIndex + ".friendlyNameNode"}
+              type="text"
+              bind:value={config.friendlyNameNode}
+              placeholder="alias"
+            />
+          </FormGroup>
+        </div>
+      {/if}
+
+      {#if config.backupType === "keyed"}
+        <div class="config-inline-form">
           <FormGroup
             label="Friendly Name Node"
             for={groupIndex + "." + configIndex + ".friendlyNameNode"}

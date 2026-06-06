@@ -1,0 +1,10 @@
+morning_routine:
+  alias: "Morning Routine"
+  sequence:
+    - service: light.turn_on
+      entity_id: light.bedroom
+notify_me:
+  sequence:
+    - service: notify.mobile_app
+      data:
+        message: "Hello"

@@ -37,7 +37,7 @@ type AppSettings struct {
 
 type ConfigBackupOptions struct {
 	Path                string   `json:"path"`
-	BackupType          string   `json:"backupType"` // "multiple", "single", "directory"
+	BackupType          string   `json:"backupType"` // "multiple", "single", "directory", "keyed"
 	MaxBackups          *int     `json:"maxBackups,omitempty"`
 	MaxBackupAgeDays    *int     `json:"maxBackupAgeDays,omitempty"`
 	IdNode              *string  `json:"idNode,omitempty"`
@@ -71,6 +71,15 @@ func NewDirectoryConfigBackupOptions(path string, includeFilePatterns, excludeFi
 	}
 }
 
+// NewKeyedConfigBackupOptions creates options for a keyed backup (mapping-rooted file, key = id).
+func NewKeyedConfigBackupOptions(path string, friendlyNameNodeName string) *ConfigBackupOptions {
+	return &ConfigBackupOptions{
+		Path:             path,
+		BackupType:       BackupTypeKeyedName,
+		FriendlyNameNode: &friendlyNameNodeName,
+	}
+}
+
 // saveAppSettings writes the AppSettings to the config file
 func saveAppSettings(configPath string, appSettings *AppSettings) error {
 	data, err := json.MarshalIndent(appSettings, "", "  ")
@@ -101,6 +110,9 @@ func LoadAppSettings(appSettingsPath string) *AppSettings {
 		}),
 		NewConfigBackupOptionGroup("Scenes", []*ConfigBackupOptions{
 			NewMultipleConfigBackupOptions("scenes.yaml", "id", "name"),
+		}),
+		NewConfigBackupOptionGroup("Scripts", []*ConfigBackupOptions{
+			NewKeyedConfigBackupOptions("scripts.yaml", "alias"),
 		}),
 		NewConfigBackupOptionGroup("ESP Home", []*ConfigBackupOptions{
 			NewDirectoryConfigBackupOptions("esphome", []string{"*.yaml"}, []string{"secrets.yaml"}),
@@ -176,6 +188,7 @@ const (
 	BackupTypeMultiple BackupType = iota
 	BackupTypeSingle
 	BackupTypeDirectory
+	BackupTypeKeyed
 )
 
 // Backup type string constants
@@ -183,10 +196,12 @@ const (
 	BackupTypeMultipleName  = "multiple"
 	BackupTypeSingleName    = "single"
 	BackupTypeDirectoryName = "directory"
+	BackupTypeKeyedName     = "keyed"
 )
 
 var stateName = map[BackupType]string{
 	BackupTypeMultiple:  BackupTypeMultipleName,
 	BackupTypeSingle:    BackupTypeSingleName,
 	BackupTypeDirectory: BackupTypeDirectoryName,
+	BackupTypeKeyed:     BackupTypeKeyedName,
 }

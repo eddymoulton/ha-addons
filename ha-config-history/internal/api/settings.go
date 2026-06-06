@@ -110,7 +110,7 @@ func validateConfig(config *types.ConfigBackupOptions, configIndex int, groupNam
 	}
 
 	// Validate backup type
-	if config.BackupType != "single" && config.BackupType != "multiple" && config.BackupType != "directory" {
+	if config.BackupType != "single" && config.BackupType != "multiple" && config.BackupType != "directory" && config.BackupType != "keyed" {
 		return fmt.Errorf("config '%s' in group '%s' has invalid backup type: '%s'",
 			config.Path, groupName, config.BackupType)
 	}
@@ -122,6 +122,14 @@ func validateConfig(config *types.ConfigBackupOptions, configIndex int, groupNam
 		}
 		if config.FriendlyNameNode == nil || strings.TrimSpace(*config.FriendlyNameNode) == "" {
 			return fmt.Errorf("config '%s' with backup type 'multiple' must have a valid friendlyNameNode", config.Path)
+		}
+	}
+
+	// Validate keyed backup type fields: the id is the map key (no idNode
+	// required); friendlyNameNode is optional but must be non-empty if provided.
+	if config.BackupType == "keyed" {
+		if config.FriendlyNameNode != nil && strings.TrimSpace(*config.FriendlyNameNode) == "" {
+			return fmt.Errorf("config '%s' with backup type 'keyed' must have a non-empty friendlyNameNode when provided", config.Path)
 		}
 	}
 
