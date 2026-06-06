@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.3.1...ha-config-history-v1.4.0) (2026-06-06)
+
+
+### Features
+
+* support scripts.yaml ([#78](https://github.com/eddymoulton/ha-addons/issues/78)) ([819f76b](https://github.com/eddymoulton/ha-addons/commit/819f76b53306272f8e9c1c1401fedca81b8aaa92))
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/fsnotify/fsnotify to v1.10.1 ([#77](https://github.com/eddymoulton/ha-addons/issues/77)) ([175252d](https://github.com/eddymoulton/ha-addons/commit/175252d3bc011bad879d194e3a3054e09084212f))
+* **deps:** update module github.com/gin-contrib/static to v1.1.6 ([#60](https://github.com/eddymoulton/ha-addons/issues/60)) ([319132a](https://github.com/eddymoulton/ha-addons/commit/319132abc4f7392ed16eab276400479c65a417cd))
+
 ## [1.3.1](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.3.0...ha-config-history-v1.3.1) (2026-02-05)
 
 
