@@ -1,9 +1,11 @@
 package core
 
 import (
+	"errors"
 	"ha-config-history/internal/io"
 	"ha-config-history/internal/types"
 	"log/slog"
+	"os"
 	"time"
 )
 
@@ -57,6 +59,27 @@ func (s *Server) processConfigOptions(groupSlug types.GroupSlug, options *types.
 		}
 
 		slog.Info("Processing backups for directory configs",
+			"found_active_configs", len(current),
+			"known_backups", len(s.State.CachedBackupSummaries),
+		)
+
+		for _, configBackup := range current {
+			s.queueAndWatch(groupSlug, options, configBackup)
+		}
+	}
+
+	if options.BackupType == "keyed" {
+		current, err := io.ReadKeyedConfigsFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				slog.Debug("Keyed config file not found, skipping", "path", options.Path)
+				return
+			}
+			slog.Error("Error reading single file for keyed configs", "error", err)
+			return
+		}
+
+		slog.Info("Processing backups for keyed configs",
 			"found_active_configs", len(current),
 			"known_backups", len(s.State.CachedBackupSummaries),
 		)

@@ -1,0 +1,15 @@
+script_1:
+  alias: First Script
+  sequence:
+    - service: light.turn_on
+      entity_id: light.living_room
+script_2:
+  alias: Second Script
+  sequence:
+    - service: light.turn_off
+      entity_id: light.kitchen
+script_3:
+  alias: Third Script
+  sequence:
+    - service: switch.toggle
+      entity_id: switch.fan

@@ -24,3 +24,15 @@ func GetYamlNodeValue(yamlNode *yaml.Node, key string) string {
 	}
 	return "unknown"
 }
+
+// GetYamlNodeValueOk returns the string value for key within a mapping node and
+// whether the key was present. Unlike GetYamlNodeValue it does not return a
+// sentinel, so callers can distinguish a missing key from a literal value.
+func GetYamlNodeValueOk(yamlNode *yaml.Node, key string) (string, bool) {
+	for i := 0; i < len(yamlNode.Content)-1; i += 2 {
+		if yamlNode.Content[i].Value == key {
+			return yamlNode.Content[i+1].Value, true
+		}
+	}
+	return "", false
+}

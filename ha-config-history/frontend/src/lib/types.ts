@@ -26,7 +26,7 @@ export interface BackupDiffResponse {
 
 export type ComparisonMode = "previous" | "current" | "two-backups";
 
-export type BackupType = "multiple" | "single" | "directory";
+export type BackupType = "multiple" | "single" | "directory" | "keyed";
 
 export interface ConfigBackupOptions {
   path: string;

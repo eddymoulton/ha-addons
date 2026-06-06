@@ -1,9 +1,11 @@
 package core
 
 import (
+	"errors"
 	"ha-config-history/internal/io"
 	"ha-config-history/internal/types"
 	"log/slog"
+	"os"
 	"path/filepath"
 )
 
@@ -56,6 +58,22 @@ func (s *Server) startFileWatcher() {
 						current, err := io.ReadMultipleConfigsFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
 						if err != nil {
 							slog.Error("Error reading updated multiple configs from file", "file", event.Name, "error", err)
+							continue
+						}
+
+						for _, configBackup := range current {
+							s.queue <- NewBackupJob(groupSlug, options, configBackup)
+						}
+					}
+
+					if options.BackupType == "keyed" {
+						current, err := io.ReadKeyedConfigsFromSingleFile(s.AppSettings.HomeAssistantConfigDir, options)
+						if err != nil {
+							if errors.Is(err, os.ErrNotExist) {
+								slog.Debug("Keyed config file not found, skipping", "file", event.Name)
+								continue
+							}
+							slog.Error("Error reading updated keyed configs from file", "file", event.Name, "error", err)
 							continue
 						}
 

@@ -1,0 +1,5 @@
+alias: Fourth Script
+sequence:
+  - service: notify.mobile_app
+    data:
+      message: New

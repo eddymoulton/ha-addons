@@ -79,6 +79,17 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 			}
 		}
 
+		if configOptions.BackupType == "keyed" {
+			// For keyed configs the id path param is the YAML map key.
+			if err := io.RestoreKeyedPartialFile(fullPath, id, backupContent, *configOptions); err != nil {
+				c.JSON(http.StatusInternalServerError, RestoreBackupResponse{
+					Success: false,
+					Error:   fmt.Sprintf("Failed to restore backup: %v", err),
+				})
+				return
+			}
+		}
+
 		if configOptions.BackupType == "directory" {
 			fullPath := filepath.Join(s.AppSettings.HomeAssistantConfigDir, configOptions.Path, id)
 			if err := io.RestoreEntireFile(fullPath, backupContent); err != nil {
@@ -88,6 +99,18 @@ func RestoreBackupHandler(s *core.Server) func(c *gin.Context) {
 				})
 				return
 			}
+		}
+
+		knownType := configOptions.BackupType == "single" ||
+			configOptions.BackupType == "multiple" ||
+			configOptions.BackupType == "keyed" ||
+			configOptions.BackupType == "directory"
+		if !knownType {
+			c.JSON(http.StatusInternalServerError, RestoreBackupResponse{
+				Success: false,
+				Error:   fmt.Sprintf("unhandled backup type: %s", configOptions.BackupType),
+			})
+			return
 		}
 
 		slog.Info("Backup restored successfully", "group", groupSlug, "path", configPath, "id", id, "filename", filename, "fullPath", fullPath)

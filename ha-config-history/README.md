@@ -110,6 +110,33 @@ The path should be a directory path that contains one or more files.
 | **Include File Patterns** | (optional) Only include files matching one of the provided glob patterns. All files are included by default                                      |
 | **Exclude File Patterns** | (optional) Exclude files matching one of the provided glob patterns. No files are included by default. You can exclude previously included files |
 
+##### Keyed
+
+Tracks configurations stored as a mapping at the root of a YAML file, where each top-level key is an independently versioned config (eg. scripts.yaml).
+
+The path should be directly to a YAML file. The map key is used as the configuration ID and does not require an ID Node.
+
+Friendly Name Node can be optionally set to a field name within each entry's value to display as the config name in the UI. If the named field is absent, the config key will be used as the display name instead.
+
+Example scripts.yaml:
+```yaml
+my_script:
+  alias: "Turn off all lights"
+  description: "Disables all lights in the house"
+  sequence:
+    - action: light.turn_off
+      target:
+        entity_id: all
+another_script:
+  alias: "Good morning routine"
+  sequence:
+    - action: light.turn_on
+      target:
+        entity_id: light.bedroom
+```
+
+The add-on ships with a default "Scripts" configuration group that backs up `scripts.yaml` using the keyed type with `alias` set as the friendly name.
+
 ## Usage
 
 ### File cleanup

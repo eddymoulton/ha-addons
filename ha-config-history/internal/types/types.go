@@ -47,7 +47,7 @@ type ConfigBackup struct {
 	FriendlyName string `json:"friendlyName,omitempty"`
 	Hash         string `json:"hash,omitempty"`
 	ModifiedDate time.Time
-	BackupType   string `json:"backupType"` // "multiple", "single", "directory"
+	BackupType   string `json:"backupType"` // "multiple", "single", "directory", "keyed"
 	FilePath     string `json:"-"`
 	Blob         []byte `json:"-"`
 }
@@ -117,4 +117,34 @@ func NewYamlConfigBackup(filename, filepath string, yamlNode *yaml.Node, config 
 	}
 
 	return nil, fmt.Errorf("unknown backup type: %s", config.BackupType)
+}
+
+// NewKeyedConfigBackup builds a ConfigBackup for a single entry of a keyed file.
+func NewKeyedConfigBackup(filepath string, keyNode, valueNode *yaml.Node, config *ConfigBackupOptions, modifiedDate time.Time) (*ConfigBackup, error) {
+	if config.BackupType != stateName[BackupTypeKeyed] {
+		return nil, fmt.Errorf("NewKeyedConfigBackup called with non-keyed backup type: %s", config.BackupType)
+	}
+
+	id := keyNode.Value
+	blob, _ := yaml.Marshal(valueNode)
+
+	friendlyName := id
+	if config.FriendlyNameNode != nil && valueNode.Kind == yaml.MappingNode {
+		if name, ok := GetYamlNodeValueOk(valueNode, *config.FriendlyNameNode); ok && name != "" {
+			friendlyName = name
+		}
+	}
+
+	return &ConfigBackup{
+		ConfigBackupIdentifier: ConfigBackupIdentifier{
+			ID:   id,
+			Path: config.Path,
+		},
+		FriendlyName: friendlyName,
+		Hash:         hashByteSlice(blob),
+		BackupType:   config.BackupType,
+		ModifiedDate: modifiedDate,
+		FilePath:     filepath,
+		Blob:         blob,
+	}, nil
 }

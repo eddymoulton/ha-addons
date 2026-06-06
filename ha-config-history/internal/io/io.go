@@ -72,6 +72,49 @@ func ReadMultipleConfigsFromSingleFile(rootPath string, config *types.ConfigBack
 	return configBackups, nil
 }
 
+// ReadKeyedConfigsFromSingleFile reads a keyed file (mapping-rooted YAML), treating each top-level key as an independently tracked config.
+func ReadKeyedConfigsFromSingleFile(rootPath string, config *types.ConfigBackupOptions) ([]*types.ConfigBackup, error) {
+	currentTime := time.Now().UTC()
+	filePath := rootPath + "/" + config.Path
+
+	configBackups := []*types.ConfigBackup{}
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file %s: %w", filePath, err)
+	}
+
+	var rootNode yaml.Node
+	if err := yaml.Unmarshal(data, &rootNode); err != nil {
+		return nil, fmt.Errorf("failed to parse YAML in %s: %w", filePath, err)
+	}
+
+	if len(rootNode.Content) == 0 {
+		return configBackups, nil
+	}
+
+	contentNode := rootNode.Content[0]
+
+	if contentNode.Kind == yaml.ScalarNode && contentNode.Tag == "!!null" {
+		return configBackups, nil
+	}
+
+	if contentNode.Kind != yaml.MappingNode {
+		return nil, fmt.Errorf("expected a YAML mapping at root")
+	}
+
+	for i := 0; i+1 < len(contentNode.Content); i += 2 {
+		keyNode := contentNode.Content[i]
+		valueNode := contentNode.Content[i+1]
+		configBackup, err := types.NewKeyedConfigBackup(filePath, keyNode, valueNode, config, currentTime)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create config backup for %s: %w", filePath, err)
+		}
+		configBackups = append(configBackups, configBackup)
+	}
+
+	return configBackups, nil
+}
+
 func ReadSingleConfigFromSingleFile(rootPath string, config *types.ConfigBackupOptions) (*types.ConfigBackup, error) {
 	return ReadSingleConfigFromSingleFilename(rootPath, config.Path, config)
 }
@@ -492,6 +535,87 @@ func RestorePartialFile(filepath string, blobToRestore []byte, options types.Con
 
 	if !updated {
 		contentNode.Content = append(contentNode.Content, dataToRestore.Content[0])
+	}
+
+	updatedBlob, err := yaml.Marshal(rootNode.Content[0])
+	if err != nil {
+		return fmt.Errorf("failed to serialize updated YAML: %w", err)
+	}
+
+	if err := os.WriteFile(filepath, updatedBlob, 0644); err != nil {
+		return fmt.Errorf("failed to write updated config file %s: %w", filepath, err)
+	}
+
+	return nil
+}
+
+// cloneYamlNode returns a deep copy of a yaml.Node tree.
+func cloneYamlNode(n *yaml.Node) *yaml.Node {
+	if n == nil {
+		return nil
+	}
+	c := *n
+	if n.Content != nil {
+		c.Content = make([]*yaml.Node, len(n.Content))
+		for i, child := range n.Content {
+			c.Content[i] = cloneYamlNode(child)
+		}
+	}
+	if n.Alias != nil {
+		c.Alias = cloneYamlNode(n.Alias)
+	}
+	return &c
+}
+
+// RestoreKeyedPartialFile restores a single entry into a keyed (mapping-rooted) file.
+func RestoreKeyedPartialFile(filepath string, key string, blobToRestore []byte, options types.ConfigBackupOptions) error {
+	var dataToRestore yaml.Node
+	if err := yaml.Unmarshal(blobToRestore, &dataToRestore); err != nil {
+		return fmt.Errorf("failed to parse backup YAML: %w", err)
+	}
+	if len(dataToRestore.Content) == 0 {
+		return fmt.Errorf("backup content is empty")
+	}
+	valueNode := dataToRestore.Content[0]
+
+	currentData, err := os.ReadFile(filepath)
+	if err != nil {
+		return fmt.Errorf("failed to read existing config file %s: %w", filepath, err)
+	}
+
+	var rootNode yaml.Node
+	if err := yaml.Unmarshal(currentData, &rootNode); err != nil {
+		return fmt.Errorf("failed to parse existing YAML in %s: %w", filepath, err)
+	}
+
+	// Ensure there is a mapping node at the root to merge into, synthesising one
+	// when the existing file is empty or null.
+	var contentNode *yaml.Node
+	if len(rootNode.Content) == 0 {
+		contentNode = &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
+		rootNode.Kind = yaml.DocumentNode
+		rootNode.Content = []*yaml.Node{contentNode}
+	} else {
+		contentNode = rootNode.Content[0]
+		if contentNode.Kind == yaml.ScalarNode && contentNode.Tag == "!!null" {
+			*contentNode = yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
+		} else if contentNode.Kind != yaml.MappingNode {
+			return fmt.Errorf("expected a YAML mapping at root")
+		}
+	}
+
+	updated := false
+	for i := 0; i+1 < len(contentNode.Content); i += 2 {
+		if contentNode.Content[i].Value == key {
+			*contentNode.Content[i+1] = *cloneYamlNode(valueNode)
+			updated = true
+			break
+		}
+	}
+
+	if !updated {
+		newKey := &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: key}
+		contentNode.Content = append(contentNode.Content, newKey, cloneYamlNode(valueNode))
 	}
 
 	updatedBlob, err := yaml.Marshal(rootNode.Content[0])
