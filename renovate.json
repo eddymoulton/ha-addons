@@ -2,6 +2,94 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:recommended",
-    "helpers:pinGitHubActionDigests"
+    "helpers:pinGitHubActionDigests",
+    ":maintainLockFilesWeekly"
+  ],
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 0,
+  "postUpdateOptions": ["gomodTidy"],
+  "internalChecksFilter": "strict",
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "schedule": ["at any time"],
+    "minimumReleaseAge": null,
+    "prCreation": "immediate"
+  },
+  "packageRules": [
+    {
+      "description": "Quarantine window. Nothing is picked up until it has survived long enough in the wild for a malicious publish to be caught and yanked. Security advisories bypass this via vulnerabilityAlerts.",
+      "matchManagers": ["npm"],
+      "minimumReleaseAge": "14 days"
+    },
+    {
+      "description": "Go modules are immutable once published and verified against sum.golang.org, so the only vector is a fresh malicious release.",
+      "matchManagers": ["gomod"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "description": "All GitHub Actions in one PR. Digest churn is the biggest source of noise.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["digest", "pin", "patch", "minor"],
+      "groupName": "github actions",
+      "commitMessageTopic": "GitHub Actions",
+      "automerge": true
+    },
+    {
+      "description": "Major action bumps land alone so breaking input changes are reviewable.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Go version must move together across go.mod, the Dockerfile and setup-go.",
+      "matchDepNames": ["go", "golang"],
+      "matchDatasources": ["golang-version", "docker"],
+      "groupName": "go toolchain",
+      "commitMessageTopic": "Go"
+    },
+    {
+      "description": "Node version must move together across the Dockerfile, .tool-versions and setup-node.",
+      "matchDepNames": ["node", "nodejs"],
+      "groupName": "node toolchain",
+      "commitMessageTopic": "Node.js"
+    },
+    {
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["patch", "minor", "digest"],
+      "groupName": "go modules",
+      "automerge": true
+    },
+    {
+      "description": "SvelteKit, Svelte and the Vite plugin release in lockstep and break in lockstep.",
+      "matchManagers": ["npm"],
+      "matchPackageNames": [
+        "svelte",
+        "svelte-check",
+        "vite",
+        "@sveltejs/**"
+      ],
+      "groupName": "svelte + vite",
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "npm dev dependencies",
+      "automerge": true
+    },
+    {
+      "matchManagers": ["npm"],
+      "matchUpdateTypes": ["major"],
+      "groupName": null,
+      "automerge": false
+    }
   ]
 }

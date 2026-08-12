@@ -34,7 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd ha-config-history/frontend
-          npm install
+          npm ci
       - name: Run svelte-check
         run: |
           cd ha-config-history/frontend

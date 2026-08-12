@@ -3,11 +3,11 @@ FROM node:24-alpine AS frontend-builder
 
 WORKDIR /app/frontend
 
-# Copy frontend package files
-COPY frontend/package*.json ./
+# .npmrc must land before npm ci, or ignore-scripts is not yet in effect
+COPY frontend/package*.json frontend/.npmrc ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
 # Copy frontend source
 COPY frontend/ ./
@@ -46,7 +46,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo \
     -o ha-config-history .
 
 # Stage 3: Runtime image
-FROM alpine:latest
+FROM alpine:3.24
 
 WORKDIR /app
 
