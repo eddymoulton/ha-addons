@@ -38,4 +38,4 @@ jobs:
       - name: Run svelte-check
         run: |
           cd ha-config-history/frontend
-          npx svelte-check --tsconfig ./tsconfig.json
+          npm run check
