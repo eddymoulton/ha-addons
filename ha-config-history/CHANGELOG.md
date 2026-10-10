@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.4.0...ha-config-history-v1.4.1) (2026-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/gin-contrib/static to v1.1.7 ([#112](https://github.com/eddymoulton/ha-addons/issues/112)) ([5f21e19](https://github.com/eddymoulton/ha-addons/commit/5f21e1998df9652db31c6b2da3a665a4953387da))
+* **deps:** update module github.com/gin-contrib/static to v1.1.8 ([#118](https://github.com/eddymoulton/ha-addons/issues/118)) ([57ee32b](https://github.com/eddymoulton/ha-addons/commit/57ee32b98c3a2df3c536bc56f952df70e0c1d68b))
+
 ## [1.4.0](https://github.com/eddymoulton/ha-addons/compare/ha-config-history-v1.3.1...ha-config-history-v1.4.0) (2026-08-12)
 
 
