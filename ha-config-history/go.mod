@@ -1,9 +1,9 @@
 module ha-config-history
 
-go 1.26.0
+go 1.26.10
 
 require (
-	github.com/gin-contrib/static v1.1.8
+	github.com/gin-contrib/static v1.1.9
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/go-cmp v0.7.0
 	github.com/hexops/gotextdiff v1.0.3
